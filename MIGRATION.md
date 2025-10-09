@@ -50,3 +50,6 @@ Build & deploy
 Notes on Sets/Maps
 - Arrays/objects via `$state` are deep‑reactive. For Set/Map, prefer `SvelteSet`/`SvelteMap` from `svelte/reactivity` when the semantics match.
 
+Observability & Remote Functions
+- Experimental server tracing and instrumentation entry are enabled in `svelte.config.js` (`kit.experimental.tracing.server` and `kit.experimental.instrumentation.server`). The NodeSDK boots from `src/instrumentation.server.js`.
+- `kit.experimental.remoteFunctions` is enabled with `compilerOptions.experimental.async`. Future work can migrate selected `/api/*` endpoints to `query`/`form`/`command` remote functions for type‑safe calls and single‑flight updates.

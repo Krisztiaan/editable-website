@@ -1,5 +1,5 @@
 <script>
-  import { extractTeaser, fetchJSON } from '$lib/util';
+  import { extractTeaser } from '$lib/util';
   import { goto } from '$app/navigation';
   import Footer from '$lib/components/Footer.svelte';
   import EditableWebsiteTeaser from '$lib/components/EditableWebsiteTeaser.svelte';
@@ -24,11 +24,7 @@
     }
     const teaser = extractTeaser(document.getElementById('article_content'));
     try {
-      const { slug } = await fetchJSON('POST', '/api/create-article', {
-        title,
-        content,
-        teaser
-      });
+      const { slug } = await createPost({ title, content, teaser });
       goto(`/blog/${slug}`);
     } catch (err) {
       console.error(err);
@@ -62,3 +58,4 @@
 </NotEditable>
 
 <Footer counter="/blog/new" />
+  import { createPost } from '../data.remote';

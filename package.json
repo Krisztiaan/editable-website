@@ -54,6 +54,7 @@
     "@opentelemetry/resources": "^2.1.0",
     "@opentelemetry/semantic-conventions": "^1.37.0",
     "@opentelemetry/core": "^2.1.0",
-    "import-in-the-middle": "^1.10.2"
+    "import-in-the-middle": "^1.10.2",
+    "valibot": "^1.1.0"
   }
 }

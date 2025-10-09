@@ -1,7 +1,7 @@
 <script>
   import PlainText from '$lib/components/PlainText.svelte';
   import RichText from '$lib/components/RichText.svelte';
-  import { fetchJSON } from '$lib/util';
+  import { getPageData, savePageData } from './page.remote';
   import PrimaryButton from '$lib/components/PrimaryButton.svelte';
   import SecondaryButton from '$lib/components/SecondaryButton.svelte';
   import LoginMenu from '$lib/components/LoginMenu.svelte';
@@ -174,7 +174,7 @@
           if (prev === next) console.warn('[save-page] no changes detected for home');
         } catch { /* ignore diff errors */ }
       }
-      await fetchJSON('POST', '/api/save-page', payload);
+      await savePageData(payload).updates(getPageData(payload.pageId));
       $isEditing = false;
     } catch (err) {
       console.error(err);

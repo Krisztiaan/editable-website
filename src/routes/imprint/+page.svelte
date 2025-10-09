@@ -4,7 +4,7 @@
   import RichText from '$lib/components/RichText.svelte';
   import LoginMenu from '$lib/components/LoginMenu.svelte';
   import PrimaryButton from '$lib/components/PrimaryButton.svelte';
-  import { fetchJSON } from '$lib/util';
+  import { getPageData, savePageData } from '../page.remote';
   import { currentUser, isEditing } from '$lib/stores.js';
   import WebsiteHeader from '$lib/components/WebsiteHeader.svelte';
 
@@ -60,7 +60,7 @@
           if (prev === next) console.warn('[save-page] no changes detected for imprint');
         } catch { /* ignore diff errors */ }
       }
-      await fetchJSON('POST', '/api/save-page', payload);
+      await savePageData(payload).updates(getPageData(payload.pageId));
       $isEditing = false;
     } catch (err) {
       console.error(err);

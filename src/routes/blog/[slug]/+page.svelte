@@ -1,5 +1,5 @@
 <script>
-  import { extractTeaser, fetchJSON } from '$lib/util';
+  import { extractTeaser } from '$lib/util';
   import PrimaryButton from '$lib/components/PrimaryButton.svelte';
   import WebsiteNav from '$lib/components/WebsiteNav.svelte';
   import Modal from '$lib/components/Modal.svelte';
@@ -40,9 +40,7 @@
   async function deleteArticle() {
     if (!$currentUser) return alert('Sorry, you are not authorized.');
     try {
-      fetchJSON('POST', '/api/delete-article', {
-        slug: data.slug
-      });
+      await deletePost(data.slug);
       goto('/blog');
     } catch (err) {
       console.error(err);
@@ -55,12 +53,9 @@
     if (!$currentUser) return alert('Sorry, you are not authorized.');
     const teaser = extractTeaser(document.getElementById('article_content'));
     try {
-      await fetchJSON('POST', '/api/update-article', {
-        slug: data.slug,
-        title,
-        content,
-        teaser
-      });
+      await updatePost({ slug: data.slug, title, content, teaser }).updates(
+        getPost(data.slug)
+      );
       $isEditing = false;
     } catch (err) {
       console.error(err);
@@ -112,3 +107,4 @@
 </NotEditable>
 
 <Footer counter={`/blog/${data.slug}`} />
+  import { getPost, updatePost, deletePost } from '../data.remote';
