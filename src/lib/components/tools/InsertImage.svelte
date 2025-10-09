@@ -9,6 +9,7 @@
   let progress = $state(); // file upload progress
 
   const schema = $derived(editorState.schema);
+  const user = getContext('user');
   const disabled = $derived(!insertImage(editorState, null, editorView));
 
   async function uploadImage() {
@@ -77,4 +78,3 @@
   {@render children?.()}
   {progress || ''}
 </button>
-  const user = getContext('user');

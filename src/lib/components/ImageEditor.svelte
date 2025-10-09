@@ -4,6 +4,7 @@
   import { getCroppedImg } from '$lib/cropperUtil';
   import uploadAsset from '$lib/uploadAsset';
   import Cropper from '$lib/components/Cropper.svelte';
+  const user = getContext('user');
 
   export let src;
   export let alt;

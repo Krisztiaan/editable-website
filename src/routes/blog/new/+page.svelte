@@ -6,6 +6,7 @@
   import NotEditable from '$lib/components/NotEditable.svelte';
   import WebsiteHeader from '$lib/components/WebsiteHeader.svelte';
   import { getContext } from 'svelte';
+  import { createPost } from '../data.remote';
 
   let { data } = $props();
 
@@ -60,4 +61,3 @@
 </NotEditable>
 
 <Footer counter="/blog/new" />
-  import { createPost } from '../data.remote';
