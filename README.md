@@ -76,11 +76,11 @@ SvelteKit 2.31+ supports experimental server tracing and a dedicated instrumenta
   - `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://localhost:4317` (gRPC proto)
   - or `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318` + headers for HTTP
 - Packages installed: `@opentelemetry/sdk-node`, `@opentelemetry/auto-instrumentations-node`, `@opentelemetry/exporter-trace-otlp-proto`, `import-in-the-middle`.
-- Svelte config enables:
+  - Svelte config enables:
   - `kit.experimental.tracing.server = true`
   - `kit.experimental.instrumentation.server = true`
 - Server entry for OTel: `src/instrumentation.server.js` (starts the NodeSDK).
-- Business spans/attributes added for key flows:
+  - Business spans/attributes added for key flows:
   - Auth: `/login` action (success flag), `/logout` load
   - Authoring APIs: save page, create/update/delete article, upload asset, search, counter
   - Request annotations in `src/hooks.server.js` (method, path, route id, status, authenticated)
@@ -90,6 +90,14 @@ Quick local test (Jaeger):
 1) `docker run -p 16686:16686 -p 4317:4317 -p 4318:4318 jaegertracing/all-in-one:latest`
 2) Set envs per above, run dev or preview
 3) Open Jaeger UI at http://localhost:16686 and look for service `editable-website`
+
+## Adapter Node v5 notes
+
+- This project uses `@sveltejs/adapter-node` v5, which supports graceful shutdown.
+- Optional env vars (see `.env.example`) to tune shutdown:
+  - `IDLE_TIMEOUT` (ms): how long to wait for open connections to drain.
+  - `SHUTDOWN_TIMEOUT` (ms): absolute timeout for shutdown.
+- Default behavior works for most apps; set these if your platform needs stricter timeouts.
 
 ## Making changes to your website
 

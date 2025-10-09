@@ -1,4 +1,5 @@
 import { sveltekit } from '@sveltejs/kit/vite';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 // Pre-optimize ProseMirror deps to avoid first-click re-optimization + reload
@@ -19,7 +20,7 @@ const proseMirrorDeps = [
 ];
 
 export default defineConfig({
-  plugins: [sveltekit()],
+  plugins: [tailwindcss(), sveltekit()],
   optimizeDeps: {
     include: proseMirrorDeps
   },
