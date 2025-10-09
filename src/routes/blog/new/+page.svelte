@@ -8,7 +8,7 @@
   import { getContext } from 'svelte';
   import { createPost } from '../data.remote';
 
-  let { data } = $props();
+  // no page data used on this route
 
   let showUserMenu = $state(false),
     title = $state('Untitled'),
