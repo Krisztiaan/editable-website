@@ -46,7 +46,7 @@
   async function savePage() {
     if (!$currentUser) return alert('Sorry, you are not authorized.');
     try {
-      fetchJSON('POST', '/api/save-page', {
+      await fetchJSON('POST', '/api/save-page', {
         pageId: 'imprint',
         page: {
           title,

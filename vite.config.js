@@ -1,7 +1,30 @@
 import { sveltekit } from '@sveltejs/kit/vite';
+import { defineConfig } from 'vite';
 
-const config = {
-  plugins: [sveltekit()]
-};
+// Pre-optimize ProseMirror deps to avoid first-click re-optimization + reload
+const proseMirrorDeps = [
+  'prosemirror-state',
+  'prosemirror-view',
+  'prosemirror-history',
+  'prosemirror-keymap',
+  'prosemirror-commands',
+  'prosemirror-model',
+  'prosemirror-schema-list',
+  'prosemirror-inputrules',
+  // common sub-deps used by PM
+  'w3c-keyname',
+  'orderedmap',
+  'rope-sequence',
+  'prosemirror-transform'
+];
 
-export default config;
+export default defineConfig({
+  plugins: [sveltekit()],
+  optimizeDeps: {
+    include: proseMirrorDeps
+  },
+  ssr: {
+    // ensure consistent SSR handling for these ESM packages
+    noExternal: proseMirrorDeps
+  }
+});

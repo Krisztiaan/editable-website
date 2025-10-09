@@ -148,24 +148,26 @@
 
   async function savePage() {
     try {
-      // Only persist the start page when logged in as an admin
-      if ($currentUser) {
-        await fetchJSON('POST', '/api/save-page', {
-          pageId: 'home',
-          page: {
-            title,
-            faqs,
-            testimonials,
-            introStep1,
-            introStep2,
-            introStep3,
-            introStep4,
-            bioPicture,
-            bioTitle,
-            bio
-          }
-        });
+      if (!$currentUser) {
+        alert('Sorry, you are not authorized. Please log in at /login.');
+        return;
       }
+      const payload = {
+        pageId: 'home',
+        page: {
+          title,
+          faqs,
+          testimonials: $state.snapshot(testimonials),
+          introStep1: $state.snapshot(introStep1),
+          introStep2: $state.snapshot(introStep2),
+          introStep3: $state.snapshot(introStep3),
+          introStep4: $state.snapshot(introStep4),
+          bioPicture,
+          bioTitle,
+          bio
+        }
+      };
+      await fetchJSON('POST', '/api/save-page', payload);
       $isEditing = false;
     } catch (err) {
       console.error(err);
@@ -252,9 +254,7 @@
   </div>
   {#each testimonials as testimonial, i}
     <Testimonial
-      bind:image={testimonials[i].image}
-      bind:text={testimonials[i].text}
-      bind:name={testimonials[i].name}
+      bind:testimonial={testimonials[i]}
       firstEntry={i === 0}
       lastEntry={i === testimonials.length - 1}
       delete={() => deleteTestimonial(i)}
