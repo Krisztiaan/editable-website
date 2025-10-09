@@ -9,6 +9,10 @@ const config = {
       // SvelteKit v2+: prefer trustedOrigins over deprecated checkOrigin
       // This replicates the previous checkOrigin: false behaviour
       trustedOrigins: ['*']
+    },
+    // Enable experimental tracing + instrumentation entry
+    experimental: {
+      tracing: { server: true }
     }
   },
   preprocess: vitePreprocess()
