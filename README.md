@@ -99,6 +99,20 @@ Quick local test (Jaeger):
   - `SHUTDOWN_TIMEOUT` (ms): absolute timeout for shutdown.
 - Default behavior works for most apps; set these if your platform needs stricter timeouts.
 
+## Fonts
+
+This project self-hosts Jost Variable (WOFF2) under `static/fonts` and declares it via `@font-face` in `src/app.css`. The HTML sets `font-family: "Jost Variable", system-ui, sans-serif` on the root element.
+
+Optional preload (for critical content paints), add to `src/routes/+layout.svelte`:
+
+```svelte
+<svelte:head>
+  <link rel="preload" href="/fonts/jost-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+</svelte:head>
+```
+
+You can remove the extended subset file (`jost-latin-ext-wght-normal.woff2`) if you don’t need Latin-Extended; update the `@font-face` rules accordingly.
+
 ## Making changes to your website
 
 You can literally do everything that SvelteKit allows you to do. Below is the source code for the /imprint page, which has a `<PlainText>` title and `<RichText>` content.
