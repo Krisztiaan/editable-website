@@ -11,7 +11,7 @@
   import Footer from '$lib/components/Footer.svelte';
   import Image from '$lib/components/Image.svelte';
   import NotEditable from '$lib/components/NotEditable.svelte';
-  import { currentUser, isEditing } from '$lib/stores.js';
+  import { getContext } from 'svelte';
   import WebsiteHeader from '$lib/components/WebsiteHeader.svelte';
 
   let { data } = $props();
@@ -56,9 +56,10 @@
   let bioPicture = $state('');
   let bio = $state('');
   let showUserMenu = $state(false);
+  const user = getContext('user');
+  const editing = getContext('editing');
 
   function initOrReset() {
-    $currentUser = data.currentUser;
     title = data.page?.title || 'Untitled Website';
     faqs = data.page?.faqs || FAQS_PLACEHOLDER;
 
@@ -104,7 +105,7 @@
     bioPicture = data.page?.bioPicture || '/images/person-placeholder.jpg';
     bioTitle = data.page?.bioTitle || "Hi, I'm Michael — I want your website to be editable.";
     bio = data.page?.bio || BIO_PLACEHOLDER;
-    $isEditing = false;
+    editing().on = false;
   }
 
   // --------------------------------------------------------------------------
@@ -112,7 +113,7 @@
   // --------------------------------------------------------------------------
 
   function toggleEdit() {
-    $isEditing = true;
+    editing().on = true;
     showUserMenu = false;
   }
 
@@ -148,7 +149,7 @@
 
   async function savePage() {
     try {
-      if (!$currentUser) {
+      if (!user()) {
         alert('Sorry, you are not authorized. Please log in at /login.');
         return;
       }
@@ -175,7 +176,7 @@
         } catch { /* ignore diff errors */ }
       }
       await savePageData(payload).updates(getPageData(payload.pageId));
-      $isEditing = false;
+      editing().on = false;
     } catch (err) {
       console.error(err);
       alert('There was an error. Please try again.');
@@ -192,8 +193,8 @@
   <link rel="canonical" href="https://editable.website" />
 </svelte:head>
 
-<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage} currentUser={$currentUser}>
-  {#if $currentUser}
+<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage}>
+  {#if user()}
     <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
     <LoginMenu />
   {/if}
@@ -216,7 +217,7 @@
     <h1 class="text-4xl md:text-7xl font-bold text-center">
       <PlainText bind:content={title} />
     </h1>
-    {#if $currentUser}
+    {#if user()}
       <NotEditable>
         <div class="text-center pt-8 pb-4 bounce text-xl">↓</div>
         <div class="text-center">
@@ -274,7 +275,7 @@
     />
   {/each}
 
-  {#if $isEditing}
+  {#if editing().on}
     <div class="text-center pb-12 border-b border-gray-100">
       <SecondaryButton onclick={addTestimonial}>Add testimonial</SecondaryButton>
     </div>

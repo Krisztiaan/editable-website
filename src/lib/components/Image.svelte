@@ -1,5 +1,5 @@
 <script>
-  import { isEditing } from '$lib/stores.js';
+  import { getContext } from 'svelte';
   let {
     src = $bindable(''),
     alt,
@@ -10,9 +10,10 @@
     class: className
   } = $props();
   let previewSrc = $state();
+  const editing = getContext('editing');
 </script>
 
-{#if $isEditing}
+{#if editing().on}
   {#await import('./ImageEditor.svelte')}
     <img class={className} src={previewSrc || src} {alt} />
   {:then ImageEditor}

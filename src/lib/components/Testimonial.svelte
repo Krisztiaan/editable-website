@@ -2,7 +2,7 @@
   import PlainText from './PlainText.svelte';
   import { classNames } from '$lib/util';
   import Image from './Image.svelte';
-  import { isEditing } from '$lib/stores.js';
+  import { getContext } from 'svelte';
   let {
     testimonial = $bindable({ image: '', text: '', name: '' }),
     firstEntry = false,
@@ -11,6 +11,7 @@
     up,
     down
   } = $props();
+  const editing = getContext('editing');
 </script>
 
 <div class={classNames(firstEntry ? 'pt-2 pb-8 sm:pb-12' : 'py-8 sm:py-12')}>
@@ -33,7 +34,7 @@
         <PlainText bind:content={testimonial.name} />
       </div>
     </div>
-    {#if $isEditing}
+    {#if editing().on}
       <div class="space-y-2 flex flex-col">
         <button
           aria-label="Delete testimonial"

@@ -5,21 +5,22 @@
   import LoginMenu from '$lib/components/LoginMenu.svelte';
   import PrimaryButton from '$lib/components/PrimaryButton.svelte';
   import { getPageData, savePageData } from '../page.remote';
-  import { currentUser, isEditing } from '$lib/stores.js';
+  import { getContext } from 'svelte';
   import WebsiteHeader from '$lib/components/WebsiteHeader.svelte';
 
-  export let data;
+  let { data } = $props();
 
-  let showUserMenu = false,
-    title,
-    imprint;
+  let showUserMenu = $state(false),
+    title = $state(''),
+    imprint = $state('');
+  const user = getContext('user');
+  const editing = getContext('editing');
 
   // --------------------------------------------------------------------------
   // DEFAULT PAGE CONTENT - AJDUST TO YOUR NEEDS
   // --------------------------------------------------------------------------
 
   function initOrReset() {
-    $currentUser = data.currentUser;
     title = data.page?.title || 'Imprint';
     imprint =
       data.page?.imprint ||
@@ -39,12 +40,12 @@
   initOrReset();
 
   function toggleEdit() {
-    $isEditing = true;
+    editing().on = true;
     showUserMenu = false;
   }
 
   async function savePage() {
-    if (!$currentUser) return alert('Sorry, you are not authorized.');
+    if (!user()) return alert('Sorry, you are not authorized.');
     try {
       const payload = {
         pageId: 'imprint',
@@ -61,7 +62,7 @@
         } catch { /* ignore diff errors */ }
       }
       await savePageData(payload).updates(getPageData(payload.pageId));
-      $isEditing = false;
+      editing().on = false;
     } catch (err) {
       console.error(err);
       alert('There was an error. Please try again.');
@@ -73,8 +74,8 @@
   <title>Imprint</title>
 </svelte:head>
 
-<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage} currentUser={$currentUser}>
-  {#if $currentUser}
+<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage}>
+  {#if user()}
     <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
     <LoginMenu />
   {/if}

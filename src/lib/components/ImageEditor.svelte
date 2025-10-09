@@ -1,5 +1,5 @@
 <script>
-  import { currentUser } from '$lib/stores';
+  import { getContext } from 'svelte';
   import { resizeImage, classNames, getDimensions, is_safari, nanoid } from '$lib/util';
   import { getCroppedImg } from '$lib/cropperUtil';
   import uploadAsset from '$lib/uploadAsset';
@@ -59,7 +59,7 @@
 
     _progress = 0;
     try {
-      if ($currentUser) {
+      if (user()) {
         await uploadAsset(resizedFile, path, p => {
           _progress = p;
         });
@@ -172,3 +172,4 @@
 />
 
 <svelte:window on:keydown={onKeyDown} />
+  const user = getContext('user');

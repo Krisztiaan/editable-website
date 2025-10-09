@@ -1,9 +1,11 @@
 <script>
   import WebsiteNav from '$lib/components/WebsiteNav.svelte';
   import Modal from '$lib/components/Modal.svelte';
-  let { showUserMenu = $bindable(false), cancel, save, children, currentUser = null } = $props();
+  import { getContext } from 'svelte';
+  let { showUserMenu = $bindable(false), cancel, save, children } = $props();
+  const user = getContext('user');
 </script>
-{#if currentUser}
+{#if user()}
   {#await import('$lib/components/tools/EditorToolbar.svelte') then EditorToolbar}
     <EditorToolbar.default {cancel} {save} />
   {/await}

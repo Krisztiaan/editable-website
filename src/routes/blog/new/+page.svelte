@@ -4,22 +4,24 @@
   import Footer from '$lib/components/Footer.svelte';
   import EditableWebsiteTeaser from '$lib/components/EditableWebsiteTeaser.svelte';
   import NotEditable from '$lib/components/NotEditable.svelte';
-  import { currentUser, isEditing } from '$lib/stores';
   import WebsiteHeader from '$lib/components/WebsiteHeader.svelte';
+  import { getContext } from 'svelte';
 
-  export let data;
+  let { data } = $props();
 
-  let showUserMenu = false,
-    title = 'Untitled',
-    content = 'Copy and paste your text here.';
+  let showUserMenu = $state(false),
+    title = $state('Untitled'),
+    content = $state('Copy and paste your text here.');
 
-  $: {
-    $currentUser = data.currentUser;
-    $isEditing = !!$currentUser;
-  }
+  const user = getContext('user');
+  const editing = getContext('editing');
+  // Enable editing by default when authenticated on this page
+  $effect(() => {
+    editing().on = !!user();
+  });
 
   async function createArticle() {
-    if (!$currentUser) {
+    if (!user()) {
       return alert('Sorry, you are not authorized to create new articles.');
     }
     const teaser = extractTeaser(document.getElementById('article_content'));
@@ -41,9 +43,9 @@
   <title>New blog post</title>
 </svelte:head>
 
-<WebsiteHeader bind:showUserMenu cancel={discardDraft} save={createArticle} currentUser={$currentUser} />
+<WebsiteHeader bind:showUserMenu cancel={discardDraft} save={createArticle} />
 
-{#if $currentUser}
+{#if user()}
   {#await import('$lib/components/Article.svelte') then Article}
     <Article.default bind:title bind:content />
   {/await}

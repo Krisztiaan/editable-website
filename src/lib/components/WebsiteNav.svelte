@@ -3,10 +3,13 @@
   import Modal from './Modal.svelte';
   import NotEditable from './NotEditable.svelte';
   import Search from './Search.svelte';
-  import { isEditing, currentUser } from '$lib/stores.js';
+  import { getContext } from 'svelte';
 
   // TODO: Replace with a globally managed context menu implementation (only one active)
   let { showUserMenu = $bindable(false), showSearch = $bindable(false) } = $props();
+
+  const user = getContext('user');
+  const editing = getContext('editing');
 
   function onKeyDown(e) {
     // Close modals
@@ -19,8 +22,8 @@
       showSearch = true;
     }
     // Turn on editing (only if authenticated)
-    if (e.key === 'e' && e.metaKey && $currentUser) {
-      $isEditing = true;
+    if (e.key === 'e' && e.metaKey && user()) {
+      editing().on = true;
       console.log('Editing enabled');
     }
   }
@@ -35,7 +38,7 @@
 <div
   class={classNames(
     'backdrop-blur-sm bg-white bg-opacity-95 transition-colors duration-500 z-10 text-sm',
-    !$isEditing ? 'sticky top-0' : ''
+    !editing().on ? 'sticky top-0' : ''
   )}
 >
   <div class="max-w-xs mx-auto py-4">
@@ -68,11 +71,11 @@
           Contact
         </a>
         <div class="flex-1"></div>
-        {#if $currentUser}
+        {#if user()}
           <button
             onclick={() => (showUserMenu = !showUserMenu)}
             class="ml-0 hover:text-black"
-            title={$currentUser.name}
+            title={user().name}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

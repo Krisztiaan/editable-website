@@ -2,7 +2,7 @@
   import { classNames, resizeImage, getDimensions, nanoid, is_safari } from '$lib/util';
   import uploadAsset from '$lib/uploadAsset';
   import { insertImage } from '$lib/editor/prosemirrorCommands';
-  import { currentUser } from '$lib/stores';
+  import { getContext } from 'svelte';
   let { editorView, editorState, children } = $props();
 
   let fileInput; // for uploading an image
@@ -31,11 +31,11 @@
     });
 
     const { width, height } = await getDimensions(resizedFile);
-    const src = $currentUser ? `/assets/${path}` : URL.createObjectURL(resizedFile);
+    const src = user() ? `/assets/${path}` : URL.createObjectURL(resizedFile);
 
     progress = 0;
     try {
-      if ($currentUser) {
+      if (user()) {
         await uploadAsset(resizedFile, path, p => {
           progress = p;
         });
@@ -77,3 +77,4 @@
   {@render children?.()}
   {progress || ''}
 </button>
+  const user = getContext('user');

@@ -11,17 +11,18 @@
   import Article from '$lib/components/Article.svelte';
   import NotEditable from '$lib/components/NotEditable.svelte';
   import EditorToolbar from '$lib/components/tools/EditorToolbar.svelte';
-  import { currentUser, isEditing } from '$lib/stores';
+  import { getContext } from 'svelte';
+  import { getPost, updatePost, deletePost } from '../data.remote';
 
-  export let data;
+  let { data } = $props();
 
-  let showUserMenu = false;
-  let title, teaser, content, published_at;
-
-  $: {
-    $currentUser = data.currentUser;
-    initOrReset();
-  }
+  let showUserMenu = $state(false);
+  let title = $state('');
+  let teaser = $state('');
+  let content = $state('');
+  let published_at = $state('');
+  const user = getContext('user');
+  const editing = getContext('editing');
 
   function initOrReset() {
     title = data.title;
@@ -29,16 +30,16 @@
     content = data.content;
     published_at = data.published_at;
     // updatedAt provided by server but not used in UI
-    $isEditing = false;
+    editing().on = false;
   }
 
   function toggleEdit() {
-    $isEditing = true;
+    editing().on = true;
     showUserMenu = false;
   }
 
   async function deleteArticle() {
-    if (!$currentUser) return alert('Sorry, you are not authorized.');
+    if (!user()) return alert('Sorry, you are not authorized.');
     try {
       await deletePost(data.slug);
       goto('/blog');
@@ -50,13 +51,13 @@
   }
 
   async function saveArticle() {
-    if (!$currentUser) return alert('Sorry, you are not authorized.');
+    if (!user()) return alert('Sorry, you are not authorized.');
     const teaser = extractTeaser(document.getElementById('article_content'));
     try {
       await updatePost({ slug: data.slug, title, content, teaser }).updates(
         getPost(data.slug)
       );
-      $isEditing = false;
+      editing().on = false;
     } catch (err) {
       console.error(err);
       alert(
@@ -77,7 +78,7 @@
   <Modal close={() => (showUserMenu = false)}>
     <form class="w-full block" method="POST">
       <div class="w-full flex flex-col space-y-4 p-4 sm:p-6">
-        {#if $currentUser}
+        {#if user()}
           <PrimaryButton onclick={toggleEdit}>Edit post</PrimaryButton>
           <PrimaryButton type="button" onclick={deleteArticle}>Delete post</PrimaryButton>
           <LoginMenu />
@@ -107,4 +108,3 @@
 </NotEditable>
 
 <Footer counter={`/blog/${data.slug}`} />
-  import { getPost, updatePost, deletePost } from '../data.remote';

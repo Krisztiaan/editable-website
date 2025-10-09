@@ -5,14 +5,12 @@
   import ArticleTeaser from '$lib/components/ArticleTeaser.svelte';
   import Footer from '$lib/components/Footer.svelte';
   import EditableWebsiteTeaser from '$lib/components/EditableWebsiteTeaser.svelte';
-  import { currentUser } from '$lib/stores.js';
+  import { getContext } from 'svelte';
   import WebsiteHeader from '$lib/components/WebsiteHeader.svelte';
 
-  export let data;
-  let showUserMenu;
-  $: {
-    $currentUser = data.currentUser;
-  }
+  let { data } = $props();
+  let showUserMenu = $state(false);
+  const user = getContext('user');
 </script>
 
 <svelte:head>
@@ -23,7 +21,7 @@
 <WebsiteHeader bind:showUserMenu>
   <div class="w-full flex flex-col space-y-4 p-4 sm:p-6">
     <PrimaryButton type="button" onclick={() => goto('/blog/new')}>New blog post</PrimaryButton>
-    <LoginMenu />
+    {#if user()}<LoginMenu />{/if}
   </div>
 </WebsiteHeader>
 

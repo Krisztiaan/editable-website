@@ -1,7 +1,7 @@
 <script>
-  let { currentUser, cancel, save } = $props();
+  let { cancel, save } = $props();
 </script>
 
 {#await import('$lib/components/EditorControls.svelte') then EditorToolbar}
-  <EditorToolbar.default {currentUser} {cancel} {save} />
+  <EditorToolbar.default {cancel} {save} />
 {/await}
