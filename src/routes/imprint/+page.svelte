@@ -58,7 +58,7 @@
           const prev = JSON.stringify(data.page || {});
           const next = JSON.stringify(payload.page);
           if (prev === next) console.warn('[save-page] no changes detected for imprint');
-        } catch (/** @type {any} */ _) { /* ignore diff errors */ }
+        } catch { /* ignore diff errors */ }
       }
       await fetchJSON('POST', '/api/save-page', payload);
       $isEditing = false;

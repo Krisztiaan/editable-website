@@ -26,7 +26,7 @@ try {
     const sql = readFileSync(schemaPath, 'utf-8');
     db.exec(sql);
   }
-} catch (e) {
+} catch {
   // Best-effort initialization; surface error to caller if operations fail later
 }
 

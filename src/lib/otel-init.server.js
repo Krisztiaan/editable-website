@@ -48,7 +48,6 @@ if (!globalThis.__otel_sdk_started) {
     globalThis.__otel_sdk_started = true;
   } catch (e) {
     // If instrumentation packages are not present or init fails, continue without tracing
-    // eslint-disable-next-line no-console
     console.warn('[otel-init] tracing disabled:', e?.message ?? e);
   }
 }

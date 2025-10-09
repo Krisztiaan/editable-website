@@ -3,7 +3,14 @@
   import { classNames } from '$lib/util';
   import Image from './Image.svelte';
   import { isEditing } from '$lib/stores.js';
-  let { testimonial = $bindable({ image: '', text: '', name: '' }), firstEntry = false, lastEntry = false, delete: ondelete, up, down } = $props();
+  let {
+    testimonial = $bindable({ image: '', text: '', name: '' }),
+    firstEntry = false,
+    lastEntry = false,
+    delete: ondelete,
+    up,
+    down
+  } = $props();
 </script>
 
 <div class={classNames(firstEntry ? 'pt-2 pb-8 sm:pb-12' : 'py-8 sm:py-12')}>

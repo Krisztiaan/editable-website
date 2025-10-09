@@ -11,7 +11,7 @@ export async function PUT({ request }) {
     try {
       span.setAttribute('app.asset.size', Number(file?.size ?? 0));
       span.setAttribute('app.asset.mime', String(file?.type ?? ''));
-    } catch {}
+    } catch { /* ignore tracing */ }
     await storeAsset(asset_id, file);
     return json({ path: asset_id });
   });

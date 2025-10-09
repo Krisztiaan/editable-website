@@ -172,7 +172,7 @@
           const prev = JSON.stringify(data.page || {});
           const next = JSON.stringify(payload.page);
           if (prev === next) console.warn('[save-page] no changes detected for home');
-        } catch (/** @type {any} */ _) { /* ignore diff errors */ }
+        } catch { /* ignore diff errors */ }
       }
       await fetchJSON('POST', '/api/save-page', payload);
       $isEditing = false;
@@ -263,7 +263,7 @@
   <div class="max-w-screen-md mx-auto px-6">
     <div class="font-bold text-sm sm:text-base py-12 sm:pt-24 pb-8">WHAT PEOPLE SAY</div>
   </div>
-  {#each testimonials as testimonial, i}
+  {#each testimonials as _, i}
     <Testimonial
       bind:testimonial={testimonials[i]}
       firstEntry={i === 0}

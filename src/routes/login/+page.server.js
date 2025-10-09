@@ -12,12 +12,12 @@ export const actions = {
       cookies.set('sessionid', sessionId, { path: '/' });
       try {
         event.tracing?.current?.setAttribute('app.auth.success', true);
-      } catch {}
+      } catch { /* ignore tracing */ }
     } catch (err) {
       console.error(err);
       try {
         event.tracing?.current?.setAttribute('app.auth.success', false);
-      } catch {}
+      } catch { /* ignore tracing */ }
       return fail(400, { incorrect: true });
     }
     redirect(303, '/');

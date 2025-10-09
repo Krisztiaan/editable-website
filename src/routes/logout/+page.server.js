@@ -9,7 +9,7 @@ export async function load(event) {
     cookies.delete('sessionid', { path: '/' });
     try {
       event.tracing?.current?.setAttribute('app.auth.logout', true);
-    } catch {}
+    } catch { /* ignore tracing */ }
   } catch (err) {
     console.error(err);
     return fail(400, { incorrect: true });
