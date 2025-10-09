@@ -2,18 +2,16 @@
   import WebsiteNav from '$lib/components/WebsiteNav.svelte';
   import Modal from '$lib/components/Modal.svelte';
   import EditorToolbar from '$lib/components/tools/EditorToolbar.svelte';
-  import { createEventDispatcher } from 'svelte';
 
-  export let showUserMenu = false;
-  const dispatch = createEventDispatcher();
+  let { showUserMenu = false, cancel, save, children } = $props();
 </script>
 
-<EditorToolbar on:cancel={() => dispatch('cancel')} on:save={() => dispatch('save')} />
+<EditorToolbar {cancel} {save} />
 <WebsiteNav bind:showUserMenu />
 {#if showUserMenu}
-  <Modal on:close={() => (showUserMenu = false)}>
+  <Modal close={() => (showUserMenu = false)}>
     <div class="w-full flex flex-col space-y-4 p-4 sm:p-6">
-      <slot />
+      {@render children?.()}
     </div>
   </Modal>
 {/if}

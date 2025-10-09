@@ -25,7 +25,7 @@
   }
 
   let fileInput; // for uploading an image
-  let progress = undefined; // file upload progress
+  let _progress = undefined; // file upload progress
   let overlayEl;
 
   // Cropper stuff
@@ -57,21 +57,21 @@
       type: content_type
     });
 
-    progress = 0;
+    _progress = 0;
     try {
       if ($currentUser) {
         await uploadAsset(resizedFile, path, p => {
-          progress = p;
+          _progress = p;
         });
         src = `/assets/${path}`;
       } else {
         src = URL.createObjectURL(resizedFile);
       }
-      progress = undefined;
+      _progress = undefined;
     } catch (err) {
       console.error(err);
       alert('An error occured. Please try again');
-      progress = undefined;
+      _progress = undefined;
     }
     cancelCropping();
     fileInput.value = null;
@@ -104,7 +104,10 @@
       ? 'z-40 bg-black text-white font-bold fixed inset-0 bg-opacity-80 text-center p-6'
       : 'hidden'
   )}
-  on:dblclick={cancelCropping}
+  ondblclick={cancelCropping}
+  role="button"
+  tabindex="0"
+  aria-label="Cancel cropping"
 >
   {#if is_safari()}
     <span class="text-[#EF174C]">ATTENTION:</span> Use Google Chrome, Firefox, oder Microsoft Edge for optimized image quality and size.
@@ -115,38 +118,47 @@
 
 {#if is_cropping}
   <div class="flex space-x-4 z-[60] fixed bottom-0 right-0 left-0 p-6">
-    <div class="flex-1" />
-    <button class="bg-[#EF174C] text-white rounded-full px-4 py-2" on:click={uploadImage}
+    <div class="flex-1"></div>
+    <button class="bg-[#EF174C] text-white rounded-full px-4 py-2" onclick={uploadImage}
       >Confirm</button
     >
-    <button class="bg-white text-black rounded-full px-4 py-2" on:click={cancelCropping}
+    <button class="bg-white text-black rounded-full px-4 py-2" onclick={cancelCropping}
       >Cancel</button
     >
-    <div class="flex-1" />
+    <div class="flex-1"></div>
   </div>
 {/if}
 
 <div
   style={`aspect-ratio: ${maxWidth}/${maxHeight}; scale: ${scale}`}
   class={classNames(is_cropping ? `z-50` : '', 'relative')}
-  on:dblclick={uploadImage}
+  ondblclick={uploadImage}
+  role="button"
+  tabindex="0"
+  aria-label="Confirm crop"
 >
   {#if is_cropping}
     <Cropper
       image={newSrc}
       bind:crop
       bind:zoom
-      on:cropcomplete={e => (cropDetail = e.detail)}
+      cropcomplete={e => (cropDetail = e.detail)}
       aspect={maxWidth / maxHeight}
     />
   {:else}
-    <img
-      on:mousedown={() => fileInput.click()}
-      class={className + ' cursor-pointer outline-[2px] hover:outline-dashed outline-[#EF174C] -outline-offset-[2px]'}
-      {src}
-      {alt}
-      title={uploadPrompt}
-    />
+    <button
+      type="button"
+      aria-label={uploadPrompt || 'Select image'}
+      class="p-0 m-0 bg-transparent border-0"
+      onclick={() => fileInput.click()}
+    >
+      <img
+        class={className + ' cursor-pointer outline-[2px] hover:outline-dashed outline-[#EF174C] -outline-offset-[2px]'}
+        {src}
+        {alt}
+        title={uploadPrompt}
+      />
+    </button>
   {/if}
 </div>
 
@@ -156,7 +168,7 @@
   accept="image/*"
   name="imagefile"
   bind:this={fileInput}
-  on:change={startCropping}
+  onchange={startCropping}
 />
 
 <svelte:window on:keydown={onKeyDown} />

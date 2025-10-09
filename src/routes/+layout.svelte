@@ -5,6 +5,7 @@
   import '@fontsource/jost/700.css';
 
   import '../app.css';
+  let { children } = $props();
 </script>
 
-<slot />
+{@render children?.()}

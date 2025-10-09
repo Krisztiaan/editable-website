@@ -7,6 +7,6 @@
 <div>
   <div class="py-4 text-center">Signed in as {$currentUser.name}</div>
   <div class="flex flex-col">
-    <PrimaryButton on:click={() => goto('/logout')}>Sign out</PrimaryButton>
+    <PrimaryButton onclick={() => goto('/logout')}>Sign out</PrimaryButton>
   </div>
 </div>

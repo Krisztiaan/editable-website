@@ -2,14 +2,32 @@ import slugify from 'slugify';
 import { SHORTCUTS } from './constants';
 import Database from 'better-sqlite3';
 import { nanoid } from '$lib/util';
-import { DB_PATH, ADMIN_PASSWORD } from '$env/static/private';
+import { env } from '$env/dynamic/private';
+import { readFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Blob } from 'node:buffer';
 
-const db = new Database(DB_PATH, {
+const db = new Database(env.DB_PATH, {
   // verbose: console.log
 });
 db.pragma('journal_mode = WAL');
 db.pragma('case_sensitive_like = true');
+
+// Ensure schema is present (idempotent)
+try {
+  const hasSessions = db
+    .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='sessions'")
+    .get();
+  if (!hasSessions) {
+    const thisDir = dirname(fileURLToPath(import.meta.url));
+    const schemaPath = new URL('../../sql/schema.sql', `file://${thisDir}/`);
+    const sql = readFileSync(schemaPath, 'utf-8');
+    db.exec(sql);
+  }
+} catch (e) {
+  // Best-effort initialization; surface error to caller if operations fail later
+}
 
 
 /**
@@ -70,7 +88,7 @@ export async function updateArticle(slug, title, content, teaser, currentUser) {
 */
 export async function authenticate(password, sessionTimeout) {
   const expires = __getDateTimeMinutesAfter(sessionTimeout);
-  if (password === ADMIN_PASSWORD) {
+  if (password === env.ADMIN_PASSWORD) {
     const sessionId = nanoid();
 
     // Now is a good time to remove expired sessions

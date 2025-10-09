@@ -1,7 +1,7 @@
 <script>
-  export let currentUser;
+  let { currentUser, cancel, save } = $props();
 </script>
 
 {#await import('$lib/components/EditorControls.svelte') then EditorToolbar}
-  <EditorToolbar.default {currentUser} on:cancel on:save />
+  <EditorToolbar.default {currentUser} {cancel} {save} />
 {/await}

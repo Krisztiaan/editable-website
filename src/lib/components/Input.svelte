@@ -1,11 +1,5 @@
 <script>
-  export let value = '';
-  export let id;
-  export let type = 'text';
-  export let name;
-  export let required = false;
-  export let inputRef = null;
-  export let placeholder = '';
+  let { value = '', id, type = 'text', name, required = false, inputRef = null, placeholder = '' } = $props();
   function setType(node) {
     node.type = type;
   }

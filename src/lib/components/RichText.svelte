@@ -1,8 +1,6 @@
 <script>
   import { isEditing } from '$lib/stores.js';
-
-  export let content;
-  export let multiLine = false;
+  let { content, multiLine = false } = $props();
 </script>
 
 {#if $isEditing}

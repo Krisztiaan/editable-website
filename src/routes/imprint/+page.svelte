@@ -65,8 +65,8 @@
   <title>Imprint</title>
 </svelte:head>
 
-<WebsiteHeader bind:showUserMenu on:cancel={initOrReset} on:save={savePage}>
-  <PrimaryButton on:click={toggleEdit}>Edit page</PrimaryButton>
+<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage}>
+  <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
   <LoginMenu />
 </WebsiteHeader>
 

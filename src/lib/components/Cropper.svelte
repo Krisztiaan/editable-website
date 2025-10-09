@@ -184,6 +184,42 @@
     setNewZoom(newZoom, point);
   };
 
+  // Modern event handler wrappers (preventDefault support)
+  function handleMouseDown(e) {
+    e.preventDefault();
+    onMouseDown(e);
+  }
+
+  function handleTouchStart(e) {
+    e.preventDefault();
+    onTouchStart(e);
+  }
+
+  function handleWheel(e) {
+    e.preventDefault();
+    onWheel(e);
+  }
+
+  function onKeyDown(e) {
+    const STEP = e.shiftKey ? 20 : 5;
+    let handled = true;
+    if (e.key === 'ArrowLeft') {
+      crop = restrictPosition ? helpers.restrictPosition({ x: crop.x - STEP, y: crop.y }, imageSize, cropperSize, zoom) : { x: crop.x - STEP, y: crop.y };
+    } else if (e.key === 'ArrowRight') {
+      crop = restrictPosition ? helpers.restrictPosition({ x: crop.x + STEP, y: crop.y }, imageSize, cropperSize, zoom) : { x: crop.x + STEP, y: crop.y };
+    } else if (e.key === 'ArrowUp') {
+      crop = restrictPosition ? helpers.restrictPosition({ x: crop.x, y: crop.y - STEP }, imageSize, cropperSize, zoom) : { x: crop.x, y: crop.y - STEP };
+    } else if (e.key === 'ArrowDown') {
+      crop = restrictPosition ? helpers.restrictPosition({ x: crop.x, y: crop.y + STEP }, imageSize, cropperSize, zoom) : { x: crop.x, y: crop.y + STEP };
+    } else {
+      handled = false;
+    }
+    if (handled) {
+      emitCropData();
+      e.preventDefault();
+    }
+  }
+
   const getPointOnContainer = ({ x, y }) => {
     if (!containerRect) {
       throw new Error('The Cropper is not mounted');
@@ -249,16 +285,20 @@
 <div
   class="cr-container"
   bind:this={containerEl}
-  on:mousedown|preventDefault={onMouseDown}
-  on:touchstart|preventDefault={onTouchStart}
-  on:wheel|preventDefault={onWheel}
+  onmousedown={handleMouseDown}
+  ontouchstart={handleTouchStart}
+  onwheel={handleWheel}
+  onkeydown={onKeyDown}
   data-testid="cr-container"
+  role="button"
+  tabindex="0"
+  aria-label="Image crop surface"
 >
   <img
     bind:this={imgEl}
     class="cr-image"
     src={image}
-    on:load={onImgLoad}
+    onload={onImgLoad}
     alt=""
     style="transform: translate({crop.x}px, {crop.y}px) scale({zoom});"
     crossorigin={crossOrigin}
@@ -270,7 +310,7 @@
       class:cr-grid={showGrid}
       style="width: {cropperSize.width}px; height: {cropperSize.height}px;"
       data-testid="cropper"
-    />
+    ></div>
   {/if}
 </div>
 

@@ -2,9 +2,7 @@
   import PlainText from '$lib/components/PlainText.svelte';
   import RichText from '$lib/components/RichText.svelte';
   import { formatDate } from '$lib/util';
-  export let title;
-  export let content;
-  export let published_at = undefined;
+  let { title, content, published_at = undefined } = $props();
 </script>
 
 <div>

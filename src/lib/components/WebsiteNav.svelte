@@ -6,8 +6,7 @@
   import { isEditing, currentUser } from '$lib/stores.js';
 
   // TODO: Replace with a globally managed context menu implementation (only one active)
-  export let showUserMenu = undefined;
-  export let showSearch = undefined;
+  let { showUserMenu = undefined, showSearch = undefined } = $props();
 
   function onKeyDown(e) {
     // Close modals
@@ -28,7 +27,7 @@
 </script>
 
 {#if showSearch}
-  <Modal position="top" on:close={() => (showSearch = false)}>
+  <Modal position="top" close={() => (showSearch = false)}>
     <Search bind:showSearch />
   </Modal>
 {/if}
@@ -42,11 +41,11 @@
   <div class="max-w-xs mx-auto py-4">
     <NotEditable>
       <div class="flex items-center relative">
-        <div class="flex-1" />
+        <div class="flex-1"></div>
         <button
           title="Search"
           class={classNames('mr-6 hover:text-black')}
-          on:click={() => (showSearch = true)}
+          onclick={() => (showSearch = true)}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -68,10 +67,10 @@
         <a class="mr-4 font-medium px-2 py-1 rounded-md hover:text-black" href="/#contact">
           Contact
         </a>
-        <div class="flex-1" />
+        <div class="flex-1"></div>
         {#if $currentUser}
           <button
-            on:click={() => (showUserMenu = !showUserMenu)}
+            onclick={() => (showUserMenu = !showUserMenu)}
             class="ml-0 hover:text-black"
             title={$currentUser.name}
           >
@@ -91,7 +90,7 @@
             </svg>
           </button>
         {/if}
-        <div class="flex-1" />
+        <div class="flex-1"></div>
       </div>
     </NotEditable>
   </div>

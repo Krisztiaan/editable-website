@@ -14,7 +14,7 @@
   import { currentUser, isEditing } from '$lib/stores.js';
   import WebsiteHeader from '$lib/components/WebsiteHeader.svelte';
 
-  export let data;
+  let { data } = $props();
 
   // --------------------------------------------------------------------------
   // DEFAULT PAGE CONTENT - AJDUST TO YOUR NEEDS
@@ -45,17 +45,17 @@
     }
   ];
 
-  let title,
-    testimonials,
-    faqs,
-    introStep1,
-    introStep2,
-    introStep3,
-    introStep4,
-    bioTitle,
-    bioPicture,
-    bio,
-    showUserMenu;
+  let title = $state('');
+  let testimonials = $state([]);
+  let faqs = $state('');
+  let introStep1 = $state();
+  let introStep2 = $state();
+  let introStep3 = $state();
+  let introStep4 = $state();
+  let bioTitle = $state('');
+  let bioPicture = $state('');
+  let bio = $state('');
+  let showUserMenu = $state(false);
 
   function initOrReset() {
     $currentUser = data.currentUser;
@@ -183,8 +183,8 @@
   <link rel="canonical" href="https://editable.website" />
 </svelte:head>
 
-<WebsiteHeader bind:showUserMenu on:cancel={initOrReset} on:save={savePage}>
-  <PrimaryButton on:click={toggleEdit}>Edit page</PrimaryButton>
+<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage}>
+  <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
   <LoginMenu />
 </WebsiteHeader>
 
@@ -208,7 +208,7 @@
     <NotEditable>
       <div class="text-center pt-8 pb-4 bounce text-xl">↓</div>
       <div class="text-center">
-        <PrimaryButton size="lg" type="button" on:click={toggleEdit}>Edit</PrimaryButton>
+        <PrimaryButton size="lg" type="button" onclick={toggleEdit}>Edit</PrimaryButton>
       </div>
     </NotEditable>
   </div>
@@ -218,7 +218,7 @@
   <div class="max-w-screen-md mx-auto px-6">
     <div class="relative">
       <div class="w-1 bg-gray-900 absolute inset-0 -top-8 bottom-12 mx-auto z-0">
-        <div class="w-4 h-4 rounded-full bg-gray-900 absolute -top-1 -left-[6px]" />
+        <div class="w-4 h-4 rounded-full bg-gray-900 absolute -top-1 -left-[6px]"></div>
       </div>
       <div class="z-10">
         <IntroStep bind:intro={introStep1} />
@@ -231,14 +231,14 @@
       <div class="w-1 bg-gray-900 absolute inset-0 -top-16 bottom-12 mx-auto z-0">
         <div
           class="absolute -bottom-2 -left-[7px] h-0 w-0 border-x-[9px] border-x-transparent border-t-[10px] border-gray-900"
-        />
+        ></div>
       </div>
     </div>
     <div class="text-center mb-32">
       <PrimaryButton
         size="lg"
         type="button"
-        on:click={() =>
+        onclick={() =>
           document.getElementById('contact').scrollIntoView({ behavior: 'smooth', block: 'start' })}
         >Create an editable website</PrimaryButton
       >
@@ -252,18 +252,20 @@
   </div>
   {#each testimonials as testimonial, i}
     <Testimonial
-      bind:testimonial
+      bind:image={testimonials[i].image}
+      bind:text={testimonials[i].text}
+      bind:name={testimonials[i].name}
       firstEntry={i === 0}
       lastEntry={i === testimonials.length - 1}
-      on:delete={() => deleteTestimonial(i)}
-      on:up={() => moveTestimonial(i, 'up')}
-      on:down={() => moveTestimonial(i, 'down')}
+      delete={() => deleteTestimonial(i)}
+      up={() => moveTestimonial(i, 'up')}
+      down={() => moveTestimonial(i, 'down')}
     />
   {/each}
 
   {#if $isEditing}
     <div class="text-center pb-12 border-b border-gray-100">
-      <SecondaryButton on:click={addTestimonial}>Add testimonial</SecondaryButton>
+      <SecondaryButton onclick={addTestimonial}>Add testimonial</SecondaryButton>
     </div>
   {/if}
 </div>

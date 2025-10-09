@@ -2,11 +2,10 @@
   import { classNames } from '$lib/util';
   import { wrapIn } from 'prosemirror-commands';
 
-  export let editorView;
-  export let editorState;
+  let { editorView, editorState, children } = $props();
 
-  $: schema = editorState.schema;
-  $: disabled = !wrapIn(schema.nodes.blockquote)(editorView.state);
+  const schema = $derived(editorState.schema);
+  const disabled = $derived(!wrapIn(schema.nodes.blockquote)(editorView.state));
 
   function handleClick() {
     wrapIn(schema.nodes.blockquote)(editorState, editorView.dispatch);
@@ -15,9 +14,9 @@
 </script>
 
 <button
-  on:click={handleClick}
+  onclick={handleClick}
   {disabled}
   class={classNames('disabled:opacity-30 rounded-full sm:mx-1 p-2 hover:bg-gray-100')}
 >
-  <slot />
+  {@render children?.()}
 </button>

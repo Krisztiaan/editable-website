@@ -3,15 +3,13 @@
   import uploadAsset from '$lib/uploadAsset';
   import { insertImage } from '$lib/editor/prosemirrorCommands';
   import { currentUser } from '$lib/stores';
-
-  export let editorView;
-  export let editorState;
+  let { editorView, editorState, children } = $props();
 
   let fileInput; // for uploading an image
-  let progress = undefined; // file upload progress
+  let progress = $state(); // file upload progress
 
-  $: schema = editorState.schema;
-  $: disabled = !insertImage(editorState, null, editorView);
+  const schema = $derived(editorState.schema);
+  const disabled = $derived(!insertImage(editorState, null, editorView));
 
   async function uploadImage() {
     const file = fileInput.files[0];
@@ -69,13 +67,13 @@
   name="imagefile"
   multiple
   bind:this={fileInput}
-  on:change={uploadImage}
+  onchange={uploadImage}
 />
 <button
-  on:click={() => fileInput.click()}
+  onclick={() => fileInput.click()}
   {disabled}
   class={classNames('hover:bg-gray-100 sm:mx-1 rounded-full p-2 disabled:opacity-30')}
 >
-  <slot />
+  {@render children?.()}
   {progress || ''}
 </button>

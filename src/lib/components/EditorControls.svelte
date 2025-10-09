@@ -7,29 +7,26 @@
   import ToggleOrderedList from './tools/ToggleOrderedList.svelte';
   import PrimaryButton from './PrimaryButton.svelte';
   import SecondaryButton from './SecondaryButton.svelte';
-  import { createEventDispatcher } from 'svelte';
   import ToggleHeading from './tools/ToggleHeading.svelte';
   import InsertImage from './tools/InsertImage.svelte';
   import CreateLink from './tools/CreateLink.svelte';
 
-  export let currentUser = undefined;
+  let { currentUser = undefined, cancel, save } = $props();
 
-  let editorView = null;
-  let editorState = null;
+  let editorView = $state(null);
+  let editorState = $state(null);
 
   const unsubscribe = activeEditorView.subscribe(value => {
     editorView = value;
     editorState = value?.state;
   });
 
-  const dispatch = createEventDispatcher();
-
   function handleCancel() {
-    dispatch('cancel', {});
+    cancel?.();
   }
 
   function handleSave() {
-    dispatch('save', {});
+    save?.();
   }
 
   onDestroy(unsubscribe);
@@ -37,7 +34,7 @@
   function onKeyDown(e) {
     // Trigger save
     if (e.key === 's' && e.metaKey) {
-      dispatch('save', {});
+      save?.();
       e.preventDefault();
       e.stopPropagation();
     }
@@ -88,7 +85,7 @@
                 /></svg
               >
             </CreateLink>
-            <div class="hidden sm:block w-px bg-gray-300 mx-3" />
+            <div class="hidden sm:block w-px bg-gray-300 mx-3"></div>
             <ToggleHeading {editorState} {editorView}>
               <svg
                 class="h-3 w-3 sm:h-4 sm:w-4"
@@ -113,7 +110,7 @@
                 /></svg
               >
             </ToggleBlockquote>
-            <div class="hidden sm:block w-px bg-gray-300 mx-3" />
+            <div class="hidden sm:block w-px bg-gray-300 mx-3"></div>
             <ToggleBulletList {editorState} {editorView}>
               <svg
                 class="h-3 w-3 sm:h-4 sm:w-4"
@@ -138,7 +135,7 @@
                 /></svg
               >
             </ToggleOrderedList>
-            <div class="hidden sm:block w-px bg-gray-300 mx-3" />
+            <div class="hidden sm:block w-px bg-gray-300 mx-3"></div>
             <InsertImage {currentUser} {editorState} {editorView}>
               <svg
                 class="h-3 w-3 sm:h-4 sm:w-4"
@@ -154,10 +151,10 @@
           </div>
         {/if}
 
-        <div class="flex-1 h-8" />
-        <SecondaryButton type="button" on:click={handleCancel}>Cancel</SecondaryButton>
-        <div class="shrink-0 w-2 sm:w-4" />
-        <PrimaryButton type="button" on:click={handleSave}>Save</PrimaryButton>
+        <div class="flex-1 h-8"></div>
+        <SecondaryButton type="button" onclick={handleCancel}>Cancel</SecondaryButton>
+        <div class="shrink-0 w-2 sm:w-4"></div>
+        <PrimaryButton type="button" onclick={handleSave}>Save</PrimaryButton>
       </div>
     </div>
   </div>

@@ -16,7 +16,7 @@
   export let data;
 
   let showUserMenu = false;
-  let title, teaser, content, published_at, updatedAt;
+  let title, teaser, content, published_at;
 
   $: {
     $currentUser = data.currentUser;
@@ -28,7 +28,7 @@
     teaser = data.teaser;
     content = data.content;
     published_at = data.published_at;
-    updatedAt = data.updatedAt;
+    // updatedAt provided by server but not used in UI
     $isEditing = false;
   }
 
@@ -55,13 +55,12 @@
     if (!$currentUser) return alert('Sorry, you are not authorized.');
     const teaser = extractTeaser(document.getElementById('article_content'));
     try {
-      const result = await fetchJSON('POST', '/api/update-article', {
+      await fetchJSON('POST', '/api/update-article', {
         slug: data.slug,
         title,
         content,
         teaser
       });
-      updatedAt = result.updatedAt;
       $isEditing = false;
     } catch (err) {
       console.error(err);
@@ -77,14 +76,14 @@
   <meta name="description" content={teaser} />
 </svelte:head>
 
-<EditorToolbar on:cancel={initOrReset} on:save={saveArticle} />
+<EditorToolbar cancel={initOrReset} save={saveArticle} />
 <WebsiteNav bind:showUserMenu />
 {#if showUserMenu}
-  <Modal on:close={() => (showUserMenu = false)}>
+  <Modal close={() => (showUserMenu = false)}>
     <form class="w-full block" method="POST">
       <div class="w-full flex flex-col space-y-4 p-4 sm:p-6">
-        <PrimaryButton on:click={toggleEdit}>Edit post</PrimaryButton>
-        <PrimaryButton type="button" on:click={deleteArticle}>Delete post</PrimaryButton>
+        <PrimaryButton onclick={toggleEdit}>Edit post</PrimaryButton>
+        <PrimaryButton type="button" onclick={deleteArticle}>Delete post</PrimaryButton>
         <LoginMenu />
       </div>
     </form>

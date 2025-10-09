@@ -1,8 +1,7 @@
 <script>
-  export let article;
-  export let firstEntry;
   import { classNames } from '$lib/util';
   import SecondaryButton from './SecondaryButton.svelte';
+  let { article, firstEntry } = $props();
 </script>
 
 <div>

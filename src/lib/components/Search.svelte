@@ -4,10 +4,11 @@
   import { SHORTCUTS } from '$lib/constants';
   import { goto } from '$app/navigation';
 
-  export let showSearch;
-  let value;
-  let result = SHORTCUTS;
-  let selectedResult = 0;
+  let { showSearch = $bindable(false) } = $props();
+  void showSearch;
+  let value = $state('');
+  let result = $state(SHORTCUTS);
+  let selectedResult = $state(0);
   let input;
   let resultsEl;
 
@@ -99,7 +100,7 @@
   />
   <button
     class="bg-gray-100 rounded-md px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900"
-    on:click={() => (showSearch = false)}>ESC</button
+    onclick={() => (showSearch = false)}>ESC</button
   >
 </div>
 
@@ -111,7 +112,7 @@
 <div class="overflow-y-auto" bind:this={resultsEl}>
   {#each result as item, i}
     <a
-      on:click={() => (showSearch = false)}
+      onclick={() => (showSearch = false)}
       class={classNames(
         'block px-4 sm:px-6 py-3 border-b border-gray-100 text-gray-600 hover:text-black',
         selectedResult === i ? 'bg-gray-100' : ''
@@ -121,4 +122,4 @@
   {/each}
 </div>
 
-<svelte:window on:keydown={onKeyDown} />
+<svelte:window onkeydown={onKeyDown} />

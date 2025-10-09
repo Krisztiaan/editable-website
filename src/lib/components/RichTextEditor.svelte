@@ -79,7 +79,7 @@
   });
 </script>
 
-<div id="prosemirror-editor" bind:this={prosemirrorNode} />
+<div id="prosemirror-editor" bind:this={prosemirrorNode}></div>
 
 <style>
   :global(#prosemirror-editor .ProseMirror) {
