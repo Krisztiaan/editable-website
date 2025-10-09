@@ -65,9 +65,11 @@
   <title>Imprint</title>
 </svelte:head>
 
-<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage}>
-  <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
-  <LoginMenu />
+<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage} currentUser={$currentUser}>
+  {#if $currentUser}
+    <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
+    <LoginMenu />
+  {/if}
 </WebsiteHeader>
 
 <div class="py-12 sm:py-24">

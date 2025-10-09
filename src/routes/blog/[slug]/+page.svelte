@@ -82,9 +82,11 @@
   <Modal close={() => (showUserMenu = false)}>
     <form class="w-full block" method="POST">
       <div class="w-full flex flex-col space-y-4 p-4 sm:p-6">
-        <PrimaryButton onclick={toggleEdit}>Edit post</PrimaryButton>
-        <PrimaryButton type="button" onclick={deleteArticle}>Delete post</PrimaryButton>
-        <LoginMenu />
+        {#if $currentUser}
+          <PrimaryButton onclick={toggleEdit}>Edit post</PrimaryButton>
+          <PrimaryButton type="button" onclick={deleteArticle}>Delete post</PrimaryButton>
+          <LoginMenu />
+        {/if}
       </div>
     </form>
   </Modal>

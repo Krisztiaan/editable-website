@@ -3,7 +3,6 @@
   import { goto } from '$app/navigation';
   import Footer from '$lib/components/Footer.svelte';
   import EditableWebsiteTeaser from '$lib/components/EditableWebsiteTeaser.svelte';
-  import Article from '$lib/components/Article.svelte';
   import NotEditable from '$lib/components/NotEditable.svelte';
   import { currentUser, isEditing } from '$lib/stores';
   import WebsiteHeader from '$lib/components/WebsiteHeader.svelte';
@@ -16,7 +15,7 @@
 
   $: {
     $currentUser = data.currentUser;
-    $isEditing = true;
+    $isEditing = !!$currentUser;
   }
 
   async function createArticle() {
@@ -46,9 +45,17 @@
   <title>New blog post</title>
 </svelte:head>
 
-<WebsiteHeader bind:showUserMenu cancel={discardDraft} save={createArticle} />
+<WebsiteHeader bind:showUserMenu cancel={discardDraft} save={createArticle} currentUser={$currentUser} />
 
-<Article bind:title bind:content />
+{#if $currentUser}
+  {#await import('$lib/components/Article.svelte') then Article}
+    <Article.default bind:title bind:content />
+  {/await}
+{:else}
+  <div class="max-w-screen-md mx-auto px-6 py-12">
+    <p>You need to <a class="underline" href="/login">log in</a> to create a new post.</p>
+  </div>
+{/if}
 
 <NotEditable>
   <EditableWebsiteTeaser />

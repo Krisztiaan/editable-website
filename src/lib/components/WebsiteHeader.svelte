@@ -1,12 +1,13 @@
 <script>
   import WebsiteNav from '$lib/components/WebsiteNav.svelte';
   import Modal from '$lib/components/Modal.svelte';
-  import EditorToolbar from '$lib/components/tools/EditorToolbar.svelte';
-
-  let { showUserMenu = false, cancel, save, children } = $props();
+  let { showUserMenu = false, cancel, save, children, currentUser = null } = $props();
 </script>
-
-<EditorToolbar {cancel} {save} />
+{#if currentUser}
+  {#await import('$lib/components/tools/EditorToolbar.svelte') then EditorToolbar}
+    <EditorToolbar.default {cancel} {save} />
+  {/await}
+{/if}
 <WebsiteNav bind:showUserMenu />
 {#if showUserMenu}
   <Modal close={() => (showUserMenu = false)}>

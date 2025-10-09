@@ -18,8 +18,8 @@
     if (e.key === 'k' && e.metaKey) {
       showSearch = true;
     }
-    // Turn on editing
-    if (e.key === 'e' && e.metaKey) {
+    // Turn on editing (only if authenticated)
+    if (e.key === 'e' && e.metaKey && $currentUser) {
       $isEditing = true;
       console.log('Editing enabled');
     }

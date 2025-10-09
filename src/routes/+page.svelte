@@ -185,9 +185,11 @@
   <link rel="canonical" href="https://editable.website" />
 </svelte:head>
 
-<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage}>
-  <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
-  <LoginMenu />
+<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage} currentUser={$currentUser}>
+  {#if $currentUser}
+    <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
+    <LoginMenu />
+  {/if}
 </WebsiteHeader>
 
 <div>
@@ -207,12 +209,14 @@
     <h1 class="text-4xl md:text-7xl font-bold text-center">
       <PlainText bind:content={title} />
     </h1>
-    <NotEditable>
-      <div class="text-center pt-8 pb-4 bounce text-xl">↓</div>
-      <div class="text-center">
-        <PrimaryButton size="lg" type="button" onclick={toggleEdit}>Edit</PrimaryButton>
-      </div>
-    </NotEditable>
+    {#if $currentUser}
+      <NotEditable>
+        <div class="text-center pt-8 pb-4 bounce text-xl">↓</div>
+        <div class="text-center">
+          <PrimaryButton size="lg" type="button" onclick={toggleEdit}>Edit</PrimaryButton>
+        </div>
+      </NotEditable>
+    {/if}
   </div>
 </div>
 
