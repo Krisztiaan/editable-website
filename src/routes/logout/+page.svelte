@@ -1,6 +1,6 @@
 <script>
   import Limiter from '$lib/components/Limiter.svelte';
-  export let form;
+  let { form } = $props();
 </script>
 
 <Limiter>

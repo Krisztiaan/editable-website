@@ -52,4 +52,10 @@ Notes on Sets/Maps
 
 Observability & Remote Functions
 - Experimental server tracing and instrumentation entry are enabled in `svelte.config.js` (`kit.experimental.tracing.server` and `kit.experimental.instrumentation.server`). The NodeSDK boots from `src/instrumentation.server.js`.
-- `kit.experimental.remoteFunctions` is enabled with `compilerOptions.experimental.async`. Future work can migrate selected `/api/*` endpoints to `query`/`form`/`command` remote functions for type‑safe calls and single‑flight updates.
+- `kit.experimental.remoteFunctions` is enabled with `compilerOptions.experimental.async`. `/api/*` endpoints have been migrated to Remote Functions (`query`/`command`) for type‑safe calls and single‑flight updates (home/imprint save, blog CRUD, search, counter).
+
+Context instead of global stores
+- Auth and editing state are provided via context in `+layout.svelte`:
+  - `setContext('user', () => data.currentUser)`
+  - `setContext('editing', () => $state({ on: false }))`
+- Components and pages read them with `const user = getContext('user')` and `const editing = getContext('editing')`.

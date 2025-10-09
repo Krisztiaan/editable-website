@@ -66,7 +66,7 @@ npm run build
 
 You can preview the production build with `npm run preview`.
 
-See MIGRATION.md for details of the Svelte 5 refactor (runes, snippets, event attributes) and updated editing patterns.
+See MIGRATION.md for details of the Svelte 5 refactor (runes, snippets, event attributes), Remote Functions for data access, and context-based editing/auth patterns.
 
 ## Observability (OpenTelemetry)
 
@@ -135,7 +135,13 @@ You can literally do everything that SvelteKit allows you to do. Below is the so
   <EditorToolbar on:cancel={initOrReset} on:save={savePage} />
 {/if}
 
-<WebsiteNav bind:showUserMenu {currentUser} bind:editable />
+<!-- Editing and auth are provided via layout context (user/editing) -->
+<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage}>
+  {#if user()}
+    <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
+    <LoginMenu />
+  {/if}
+</WebsiteHeader>
 
 <div class="py-12 sm:py-24">
   <div class="max-w-screen-md mx-auto px-6 md:text-xl">
@@ -157,7 +163,7 @@ Please use this as a starting point for new pages you want to add to your websit
 
 ## Making changes to the content
 
-Just navigate to `http://127.0.0.1:5173/login` and enter your secure admin password (`ADMIN_PASSWORD`). Now you see an additional ellipsis menu, which will provide you an "Edit page" or "Edit post" option for all pages that you have set up as "editable".
+Just navigate to `http://127.0.0.1:5173/login` and enter your secure admin password (`ADMIN_PASSWORD`). When authenticated, the header shows an editor toolbar and edit actions where applicable.
 
 ## Deployment to Fly.io
 

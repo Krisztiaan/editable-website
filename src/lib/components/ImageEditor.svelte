@@ -143,7 +143,7 @@
       image={newSrc}
       bind:crop
       bind:zoom
-      cropcomplete={e => (cropDetail = e.detail)}
+      cropcomplete={d => (cropDetail = d)}
       aspect={maxWidth / maxHeight}
     />
   {:else}
@@ -172,5 +172,5 @@
   onchange={startCropping}
 />
 
-<svelte:window on:keydown={onKeyDown} />
+<svelte:window onkeydown={onKeyDown} />
   const user = getContext('user');

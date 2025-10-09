@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { fetchJSON } from '$lib/util';
+  import { incrementCounter } from '$lib/remote/counter.remote';
   import NotEditable from '$lib/components/NotEditable.svelte';
 
   let { counter } = $props();
@@ -8,7 +8,7 @@
 
   onMount(async () => {
     if (counter) {
-      const result = await fetchJSON('GET', `/api/counter?c=${counter}`);
+      const result = await incrementCounter(counter);
       count = result.count;
     }
   });

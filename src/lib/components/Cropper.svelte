@@ -1,25 +1,29 @@
 <script>
   // Adopted from:
   // https://github.com/ValentinH/svelte-easy-crop/blob/main/src/lib/Cropper.svelte
-  import { createEventDispatcher, onDestroy, onMount } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
 
   import * as helpers from '$lib/cropperUtil';
 
-  export let image;
-  export let crop = { x: 0, y: 0 };
-  export let zoom = 1;
-  export let aspect = 4 / 3;
-  export let minZoom = 1;
-  export let maxZoom = 3;
-  export let cropSize = null;
-  export let cropShape = 'rect';
-  export let showGrid = true;
-  export let zoomSpeed = 1;
-  export let crossOrigin = null;
-  export let restrictPosition = true;
+  let {
+    image,
+    crop = $bindable({ x: 0, y: 0 }),
+    zoom = $bindable(1),
+    aspect = 4 / 3,
+    minZoom = 1,
+    maxZoom = 3,
+    cropSize = null,
+    cropShape = 'rect',
+    showGrid = true,
+    zoomSpeed = 1,
+    crossOrigin = null,
+    restrictPosition = true,
+    // callback prop replacing dispatched event
+    cropcomplete
+  } = $props();
 
-  let cropperSize = null;
-  let imageSize = { width: 0, height: 0, naturalWidth: 0, naturalHeight: 0 };
+  let cropperSize = $state(null);
+  let imageSize = $state({ width: 0, height: 0, naturalWidth: 0, naturalHeight: 0 });
   let containerEl = null;
   let containerRect = null;
   let imgEl = null;
@@ -29,7 +33,7 @@
   let rafDragTimeout = null;
   let rafZoomTimeout = null;
 
-  const dispatch = createEventDispatcher();
+  // using callback prop `cropcomplete` instead of dispatched CustomEvent
 
   onMount(() => {
     // when rendered via SSR, the image can already be loaded and its onLoad callback will never be called
@@ -265,23 +269,29 @@
       restrictPosition
     );
 
-    dispatch('cropcomplete', {
+    cropcomplete?.({
       percent: croppedAreaPercentages,
       pixels: croppedAreaPixels
     });
   };
 
-  // ------ Reactive statement ------
-  //when aspect changes, we reset the cropperSize
-  $: if (imgEl) {
-    cropperSize = cropSize ? cropSize : helpers.getCropSize(imgEl.width, imgEl.height, aspect);
-  }
+  // Recompute size when aspect/cropSize/img change
+  $effect(() => {
+    // reference deps
+    void aspect; void cropSize; void imgEl?.width;
+    if (imgEl) {
+      cropperSize = cropSize ? cropSize : helpers.getCropSize(imgEl.width, imgEl.height, aspect);
+    }
+  });
 
-  // when zoom changes, we recompute the cropped area
-  $: zoom && emitCropData();
+  // when zoom changes, recompute cropped area
+  $effect(() => {
+    void zoom; // track zoom
+    emitCropData();
+  });
 </script>
 
-<svelte:window on:resize={computeSizes} />
+<svelte:window onresize={computeSizes} />
 <div
   class="cr-container"
   bind:this={containerEl}
