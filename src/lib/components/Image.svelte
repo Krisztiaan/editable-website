@@ -1,6 +1,14 @@
 <script>
   import { isEditing } from '$lib/stores.js';
-  let { src, alt, uploadPrompt = undefined, maxWidth, maxHeight, quality, class: className } = $props();
+  let {
+    src = $bindable(''),
+    alt,
+    uploadPrompt = undefined,
+    maxWidth,
+    maxHeight,
+    quality,
+    class: className
+  } = $props();
   let previewSrc = $state();
 </script>
 
