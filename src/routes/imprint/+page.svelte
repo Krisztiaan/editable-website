@@ -46,13 +46,21 @@
   async function savePage() {
     if (!$currentUser) return alert('Sorry, you are not authorized.');
     try {
-      await fetchJSON('POST', '/api/save-page', {
+      const payload = {
         pageId: 'imprint',
         page: {
           title,
           imprint
         }
-      });
+      };
+      if (import.meta.env.DEV) {
+        try {
+          const prev = JSON.stringify(data.page || {});
+          const next = JSON.stringify(payload.page);
+          if (prev === next) console.warn('[save-page] no changes detected for imprint');
+        } catch (/** @type {any} */ _) { /* ignore diff errors */ }
+      }
+      await fetchJSON('POST', '/api/save-page', payload);
       $isEditing = false;
     } catch (err) {
       console.error(err);

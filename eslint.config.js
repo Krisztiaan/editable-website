@@ -12,7 +12,8 @@ export default [
     files: ['**/*.svelte'],
     rules: {
       'svelte/no-at-html-tags': 'off',
-      'svelte/valid-compile': ['warn', { ignoreWarnings: true }]
+      // Treat Svelte compile issues as errors to catch invalid bindings in CI
+      'svelte/valid-compile': ['error', { ignoreWarnings: false }]
     }
   },
   {

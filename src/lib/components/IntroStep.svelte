@@ -2,7 +2,7 @@
   import PlainText from './PlainText.svelte';
   import RichText from './RichText.svelte';
 
-  export let intro;
+  let { intro = $bindable({ label: '', title: '', description: '' }) } = $props();
 </script>
 
 <div class="my-12">

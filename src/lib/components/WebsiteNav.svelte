@@ -6,7 +6,7 @@
   import { isEditing, currentUser } from '$lib/stores.js';
 
   // TODO: Replace with a globally managed context menu implementation (only one active)
-  let { showUserMenu = undefined, showSearch = undefined } = $props();
+  let { showUserMenu = $bindable(false), showSearch = $bindable(false) } = $props();
 
   function onKeyDown(e) {
     // Close modals

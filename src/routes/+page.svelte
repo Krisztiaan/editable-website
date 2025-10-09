@@ -167,6 +167,13 @@
           bio
         }
       };
+      if (import.meta.env.DEV) {
+        try {
+          const prev = JSON.stringify(data.page || {});
+          const next = JSON.stringify(payload.page);
+          if (prev === next) console.warn('[save-page] no changes detected for home');
+        } catch (/** @type {any} */ _) { /* ignore diff errors */ }
+      }
       await fetchJSON('POST', '/api/save-page', payload);
       $isEditing = false;
     } catch (err) {
