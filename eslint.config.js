@@ -14,6 +14,9 @@ export default [
       'svelte/no-at-html-tags': 'off',
       // Treat Svelte compile issues as errors to catch invalid bindings in CI
       'svelte/valid-compile': ['error', { ignoreWarnings: false }]
+      ,
+      // New in eslint-plugin-svelte v3; we rely on SvelteKit base handling
+      'svelte/no-navigation-without-resolve': 'off'
     }
   },
   {

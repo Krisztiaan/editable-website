@@ -35,7 +35,7 @@
     {/if}
   </div>
 
-  {#each data.articles as article, i}
+  {#each data.articles as article, i (article.slug || i)}
     <ArticleTeaser {article} firstEntry={i === 0} />
   {/each}
 </div>

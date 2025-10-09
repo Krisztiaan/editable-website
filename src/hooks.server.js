@@ -1,6 +1,4 @@
 import { getCurrentUser } from '$lib/api';
-// Initialize OpenTelemetry NodeSDK for adapter-node here (runs at server startup)
-import '$lib/otel-init.server.js';
 
 export async function handle({ event, resolve }) {
   // annotate the root span with request data

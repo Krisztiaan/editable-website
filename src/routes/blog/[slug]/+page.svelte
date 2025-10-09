@@ -100,7 +100,7 @@
       <div class="max-w-screen-md mx-auto px-6 pt-8 sm:pt-12">
         <div class="font-bold text-sm">READ NEXT</div>
       </div>
-      {#each data.articles as article, i}
+      {#each data.articles as article, i (article.slug || i)}
         <ArticleTeaser {article} firstEntry={i === 0} />
       {/each}
     </div>

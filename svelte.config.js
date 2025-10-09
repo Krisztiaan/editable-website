@@ -12,10 +12,18 @@ const config = {
     },
     // Enable experimental tracing + instrumentation entry
     experimental: {
-      tracing: { server: true }
+      tracing: { server: true },
+      instrumentation: { server: true },
+      remoteFunctions: true
     }
   },
-  preprocess: vitePreprocess()
+  preprocess: vitePreprocess(),
+  compilerOptions: {
+    experimental: {
+      // allow `await` in components for remote functions
+      async: true
+    }
+  }
 };
 
 export default config;

@@ -110,7 +110,7 @@
   </div>
 {/if}
 <div class="overflow-y-auto" bind:this={resultsEl}>
-  {#each result as item, i}
+  {#each result as item, i (item.url || i)}
     <a
       onclick={() => (showSearch = false)}
       class={classNames(

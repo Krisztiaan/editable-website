@@ -263,7 +263,7 @@
   <div class="max-w-screen-md mx-auto px-6">
     <div class="font-bold text-sm sm:text-base py-12 sm:pt-24 pb-8">WHAT PEOPLE SAY</div>
   </div>
-  {#each testimonials as _, i}
+  {#each testimonials as _, i (i)}
     <Testimonial
       bind:testimonial={testimonials[i]}
       firstEntry={i === 0}
@@ -287,7 +287,7 @@
       <div class="max-w-screen-md mx-auto px-6 pt-12 sm:pt-24">
         <div class="font-bold text-sm sm:text-base">FROM THE BLOG</div>
       </div>
-      {#each data.articles as article, i}
+      {#each data.articles as article, i (article.slug || i)}
         <ArticleTeaser {article} firstEntry={i === 0} />
       {/each}
     </div>
