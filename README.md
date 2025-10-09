@@ -1,4 +1,4 @@
-# editable-website
+# editable-website (Svelte 5 + SvelteKit 2)
 
 A SvelteKit template for coding **completely custom websites**, while allowing non-technical people to **make edits** to the content by simply logging in with a secure admin password.
 
@@ -46,7 +46,7 @@ ADMIN_PASSWORD=xxxxxxxxxxxx
 ORIGIN=http://localhost:5173
 ```
 
-Seed the database:
+Database schema is initialized automatically on first run. You no longer need to seed manually, but you still can using `sql/schema.sql` if desired:
 
 ```bash
 sqlite3 data/db.sqlite3 < sql/schema.sql
@@ -65,6 +65,31 @@ npm run build
 ```
 
 You can preview the production build with `npm run preview`.
+
+See MIGRATION.md for details of the Svelte 5 refactor (runes, snippets, event attributes) and updated editing patterns.
+
+## Observability (OpenTelemetry)
+
+SvelteKit 2.31+ supports experimental server tracing and a dedicated instrumentation entry. This repo enables it and wires a NodeSDK exporter.
+
+- Configure `.env` (see `.env.example`) with `OTEL_SERVICE_NAME` and OTLP endpoint vars (e.g. Jaeger OTLP):
+  - `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://localhost:4317` (gRPC proto)
+  - or `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318` + headers for HTTP
+- Packages installed: `@opentelemetry/sdk-node`, `@opentelemetry/auto-instrumentations-node`, `@opentelemetry/exporter-trace-otlp-proto`, `import-in-the-middle`.
+- Svelte config enables:
+  - `kit.experimental.tracing.server = true`
+  - `kit.experimental.instrumentation.server = true`
+- Server entry for OTel: `src/instrumentation.server.js` (starts the NodeSDK).
+- Business spans/attributes added for key flows:
+  - Auth: `/login` action (success flag), `/logout` load
+  - Authoring APIs: save page, create/update/delete article, upload asset, search, counter
+  - Request annotations in `src/hooks.server.js` (method, path, route id, status, authenticated)
+
+Quick local test (Jaeger):
+
+1) `docker run -p 16686:16686 -p 4317:4317 -p 4318:4318 jaegertracing/all-in-one:latest`
+2) Set envs per above, run dev or preview
+3) Open Jaeger UI at http://localhost:16686 and look for service `editable-website`
 
 ## Making changes to your website
 
