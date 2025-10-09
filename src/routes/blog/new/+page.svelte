@@ -46,7 +46,7 @@
   <title>New blog post</title>
 </svelte:head>
 
-<WebsiteHeader bind:showUserMenu on:cancel={discardDraft} on:save={createArticle} />
+<WebsiteHeader bind:showUserMenu cancel={discardDraft} save={createArticle} />
 
 <Article bind:title bind:content />
 
