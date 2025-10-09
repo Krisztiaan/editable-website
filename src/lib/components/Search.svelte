@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { debounce, classNames } from '$lib/util';
+  import { getSearch } from '$lib/remote/search.remote';
   import { SHORTCUTS } from '$lib/constants';
   import { goto } from '$app/navigation';
 
@@ -18,8 +19,7 @@
 
   async function search() {
     if (value) {
-      const response = await fetch(`/api/search?q=${value}`);
-      result = await response.json();
+      result = await getSearch(value);
     } else {
       result = SHORTCUTS;
     }
