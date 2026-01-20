@@ -24,7 +24,8 @@ try {
     'page_versions',
     'page_pointers',
     'page_pointer_events',
-    'page_locks'
+    'page_locks',
+    'page_lock_events'
   ];
   const hasTable = (name) =>
     db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get(name);
