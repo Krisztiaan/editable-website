@@ -6,7 +6,9 @@ import { error } from '@sveltejs/kit';
 
 export const getPageData = query(v.string(), async (pageId) => {
   const event = getRequestEvent();
-  return await apiGetPage(pageId, event.locals.user, event.locals.envPointer);
+  // For editor reads, default to preview when authenticated.
+  // Env selection for view-mode is handled by server load functions.
+  return await apiGetPage(pageId, event.locals.user);
 });
 
 export const savePageData = command(

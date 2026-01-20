@@ -5,7 +5,7 @@ export async function load({ locals, params }) {
   if (!locals.user) throw redirect(303, '/login');
 
   const pageId = params.pageId;
-  const page = await getPage(pageId, locals.user, locals.envPointer);
+  const page = await getPage(pageId, locals.user);
 
   return {
     currentUser: locals.user,
