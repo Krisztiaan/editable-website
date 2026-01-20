@@ -1,7 +1,14 @@
 // Remote functions for generic page reading/saving
 import * as v from 'valibot';
 import { query, command, getRequestEvent } from '$app/server';
-import { getPage as apiGetPage, createOrUpdatePage, publishPage, listPageVersions, setPagePointer } from '$lib/api';
+import {
+  getPage as apiGetPage,
+  createOrUpdatePage,
+  publishPage,
+  listPageVersions,
+  setPagePointer,
+  acquirePageLock
+} from '$lib/api';
 import { error } from '@sveltejs/kit';
 
 export const getPageData = query(v.string(), async (pageId) => {
@@ -24,6 +31,18 @@ export const savePageData = command(
     return await createOrUpdatePage(pageId, page, user);
   }
 );
+
+export const acquirePageLockData = command(v.string(), async (pageId) => {
+  const event = getRequestEvent();
+  const user = event.locals.user;
+  if (!user) throw error(401, 'Unauthorized');
+  try {
+    acquirePageLock(pageId, user);
+    return { pageId, status: 'ok' };
+  } catch (err) {
+    throw error(423, err instanceof Error ? err.message : 'Locked');
+  }
+});
 
 export const publishPageData = command(v.string(), async (pageId) => {
   const event = getRequestEvent();

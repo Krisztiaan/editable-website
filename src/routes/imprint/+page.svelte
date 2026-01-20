@@ -5,7 +5,7 @@
   import LoginMenu from '$lib/components/LoginMenu.svelte';
   import PrimaryButton from '$lib/components/PrimaryButton.svelte';
   import SecondaryButton from '$lib/components/SecondaryButton.svelte';
-  import { getPageData, savePageData, publishPageData } from '../page.remote';
+  import { acquirePageLockData, getPageData, savePageData, publishPageData } from '../page.remote';
   import { getContext } from 'svelte';
   import WebsiteHeader from '$lib/components/WebsiteHeader.svelte';
 
@@ -40,9 +40,15 @@
 
   initOrReset();
 
-  function toggleEdit() {
-    editing().on = true;
-    showUserMenu = false;
+  async function toggleEdit() {
+    try {
+      await acquirePageLockData('imprint');
+      editing().on = true;
+      showUserMenu = false;
+    } catch (err) {
+      console.error(err);
+      alert('This page is locked. Please try again later.');
+    }
   }
 
   async function savePage() {

@@ -1,7 +1,7 @@
 <script>
   import PlainText from '$lib/components/PlainText.svelte';
   import RichText from '$lib/components/RichText.svelte';
-  import { getPageData, savePageData, publishPageData } from './page.remote';
+  import { acquirePageLockData, getPageData, savePageData, publishPageData } from './page.remote';
   import PrimaryButton from '$lib/components/PrimaryButton.svelte';
   import SecondaryButton from '$lib/components/SecondaryButton.svelte';
   import LoginMenu from '$lib/components/LoginMenu.svelte';
@@ -112,9 +112,15 @@
   // Page logic
   // --------------------------------------------------------------------------
 
-  function toggleEdit() {
-    editing().on = true;
-    showUserMenu = false;
+  async function toggleEdit() {
+    try {
+      await acquirePageLockData('home');
+      editing().on = true;
+      showUserMenu = false;
+    } catch (err) {
+      console.error(err);
+      alert('This page is locked. Please try again later.');
+    }
   }
 
   function addTestimonial() {
