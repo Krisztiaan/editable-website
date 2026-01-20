@@ -22,6 +22,15 @@
   const pagePath = $derived(
     data.pageId === 'home' ? '/' : data.pageId === 'imprint' ? '/imprint' : `/pages/${data.pageId}`
   );
+  const pageUrls = $derived.by(() => {
+    const base = resolve(pagePath);
+    return {
+      base,
+      prod: base + '?env=prod',
+      staging: base + '?env=staging',
+      preview: base + '?env=preview'
+    };
+  });
 
   let busy = $state(false);
 
@@ -57,15 +66,21 @@
     <div class="text-sm text-gray-500">Page</div>
     <h1 class="text-2xl font-bold">{data.pageId}</h1>
   </div>
-	  <div class="text-sm">
-	    <a class="underline" href={resolve(pagePath)}>Open page</a>
-	    {#if data.pageId !== 'home' && data.pageId !== 'imprint'}
-	      <span class="text-gray-300 px-2">•</span>
-	      <a class="underline" href={resolve('/builder/[pageId]', { pageId: data.pageId })}>Edit in builder</a>
-	    {/if}
-	    <span class="text-gray-500"> (use env toggle to view prod/staging/preview)</span>
-	  </div>
-	</div>
+  <div class="text-sm">
+    <a class="underline" href={pageUrls.base}>Open page</a>
+    <span class="text-gray-300 px-2">•</span>
+    <a class="underline" href={pageUrls.preview}>Preview</a>
+    <span class="text-gray-300 px-2">•</span>
+    <a class="underline" href={pageUrls.staging}>Staging</a>
+    <span class="text-gray-300 px-2">•</span>
+    <a class="underline" href={pageUrls.prod}>Prod</a>
+    {#if data.pageId !== 'home' && data.pageId !== 'imprint'}
+      <span class="text-gray-300 px-2">•</span>
+      <a class="underline" href={resolve('/builder/[pageId]', { pageId: data.pageId })}>Edit in builder</a>
+    {/if}
+    <span class="text-gray-500"> (uses `?env=`)</span>
+  </div>
+</div>
 
 <div class="pb-8 space-y-2">
   <div class="text-sm text-gray-500">Pointers</div>
