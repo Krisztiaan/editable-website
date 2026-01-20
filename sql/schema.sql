@@ -31,6 +31,16 @@ CREATE TABLE IF NOT EXISTS page_pointers (
   PRIMARY KEY (page_id, pointer)
 );
 
+CREATE TABLE IF NOT EXISTS page_pointer_events (
+  event_id TEXT PRIMARY KEY,
+  page_id TEXT NOT NULL,
+  pointer TEXT NOT NULL,
+  from_version_id TEXT DEFAULT NULL,
+  to_version_id TEXT NOT NULL,
+  changed_at TEXT NOT NULL,
+  changed_by TEXT NOT NULL
+);
+
 -- counters (for view counts and everything you want to track anonymously)
 CREATE TABLE IF NOT EXISTS counters (
   counter_id TEXT PRIMARY KEY,
