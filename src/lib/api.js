@@ -112,6 +112,37 @@ function recordPointerEvent({ pageId, pointer, fromVersionId, toVersionId, now, 
   }
 }
 
+function recordLockEvent({ pageId, fromLockedBy, fromLockedByName, toLockedBy, toLockedByName, now, user }) {
+  try {
+    dbSpan(
+      'insert',
+      'page_lock_events',
+      {
+        'app.page.id': pageId
+      },
+      () =>
+        db
+          .prepare(
+            `INSERT INTO page_lock_events
+             (event_id, page_id, from_locked_by, from_locked_by_name, to_locked_by, to_locked_by_name, changed_at, changed_by)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .run(
+            nanoid(),
+            pageId,
+            fromLockedBy || null,
+            fromLockedByName || null,
+            toLockedBy,
+            toLockedByName,
+            now,
+            user?.name || 'Admin'
+          )
+    );
+  } catch {
+    // best-effort; don't block lock acquisition on audit logging
+  }
+}
+
 export function acquirePageLock(pageId, user, ttlSeconds = 60 * 10, force = false) {
   if (!user) throw new Error('Not authorized');
   if (!user.sessionId) throw new Error('Missing session');
@@ -144,6 +175,8 @@ export function acquirePageLock(pageId, user, ttlSeconds = 60 * 10, force = fals
     throw new Error(`Locked by ${lock.locked_by_name || 'another user'} until ${lock.locked_until}`);
   }
 
+  const takeover = !expired && !owned && force;
+
   dbSpan('update', 'page_locks', { 'app.page.id': pageId }, () =>
     db
       .prepare(
@@ -153,6 +186,18 @@ export function acquirePageLock(pageId, user, ttlSeconds = 60 * 10, force = fals
       )
       .run(user.sessionId, user.name || 'Admin', lockedUntil, nowIso, pageId)
   );
+
+  if (takeover) {
+    recordLockEvent({
+      pageId,
+      fromLockedBy: lock.locked_by,
+      fromLockedByName: lock.locked_by_name,
+      toLockedBy: user.sessionId,
+      toLockedByName: user.name || 'Admin',
+      now: nowIso,
+      user
+    });
+  }
 }
 
 function dbSpan(op, table, attrs, fn) {
@@ -587,6 +632,23 @@ export async function listPageVersions(page_id, currentUser) {
     // ignore if table missing
   }
 
+  let lockEvents = [];
+  try {
+    lockEvents = dbSpan('select', 'page_lock_events', { 'app.page.id': page_id }, () =>
+      db
+        .prepare(
+          `SELECT event_id, from_locked_by, from_locked_by_name, to_locked_by, to_locked_by_name, changed_at, changed_by
+           FROM page_lock_events
+           WHERE page_id = ?
+           ORDER BY changed_at DESC
+           LIMIT 50`
+        )
+        .all(page_id)
+    );
+  } catch {
+    // ignore if table missing
+  }
+
   let lock = null;
   try {
     lock = dbSpan('select', 'page_locks', { 'app.page.id': page_id }, () =>
@@ -602,7 +664,7 @@ export async function listPageVersions(page_id, currentUser) {
     // ignore if table missing
   }
 
-  return { pageId: page_id, pointers, versions, events, lock };
+  return { pageId: page_id, pointers, versions, events, lockEvents, lock };
 }
 
 export async function setPagePointer(page_id, pointer, version_id, currentUser) {

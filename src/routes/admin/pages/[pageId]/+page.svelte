@@ -179,6 +179,24 @@
           {e.from_version_id || '—'} → {e.to_version_id}
         </div>
       </div>
+      {/each}
+  </div>
+{/if}
+
+{#if (data.lockEvents || []).length}
+  <h2 class="text-xl font-bold pt-10 pb-4">Locks</h2>
+  <div class="space-y-3">
+    {#each data.lockEvents as e (e.event_id)}
+      <div class="border border-gray-100 rounded-lg p-3">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+          <span class="font-semibold">takeover</span>
+          <span class="text-gray-600">{e.changed_at}</span>
+          <span class="text-gray-600">{e.changed_by}</span>
+        </div>
+        <div class="pt-1 font-mono text-xs break-all text-gray-700">
+          {(e.from_locked_by_name || e.from_locked_by || '—') + ' → ' + (e.to_locked_by_name || e.to_locked_by)}
+        </div>
+      </div>
     {/each}
   </div>
 {/if}
