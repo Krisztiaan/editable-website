@@ -3,7 +3,7 @@
   import SecondaryButton from '$lib/components/SecondaryButton.svelte';
   import { invalidateAll } from '$app/navigation';
   import { resolve } from '$app/paths';
-  import { setPagePointerData } from '../../../page.remote';
+  import { setPagePointerData, takePageLockData } from '../../../page.remote';
 
   let { data } = $props();
 
@@ -22,6 +22,19 @@
   );
 
   let busy = $state(false);
+
+  async function takeLock() {
+    busy = true;
+    try {
+      await takePageLockData(data.pageId);
+      await invalidateAll();
+    } catch (err) {
+      console.error(err);
+      alert('There was an error. Please try again.');
+    } finally {
+      busy = false;
+    }
+  }
 
   async function setPointer(pointer, versionId) {
     busy = true;
@@ -60,8 +73,13 @@
     <div><span class="font-semibold">preview</span>: {previewVersionId || '—'}</div>
   </div>
   {#if data.lock}
-    <div class="text-xs text-gray-500">
-      Lock: {data.lock.locked_by_name} until {data.lock.locked_until}
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="text-xs text-gray-500">
+        Lock: {data.lock.locked_by_name} until {data.lock.locked_until}
+      </div>
+      {#if data.lock.locked_by !== data.currentUser?.sessionId}
+        <SecondaryButton size="sm" type="button" disabled={busy} onclick={takeLock}>Take lock</SecondaryButton>
+      {/if}
     </div>
   {/if}
   <div class="pt-3 flex flex-wrap items-center gap-2">

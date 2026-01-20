@@ -112,7 +112,7 @@ function recordPointerEvent({ pageId, pointer, fromVersionId, toVersionId, now, 
   }
 }
 
-export function acquirePageLock(pageId, user, ttlSeconds = 60 * 10) {
+export function acquirePageLock(pageId, user, ttlSeconds = 60 * 10, force = false) {
   if (!user) throw new Error('Not authorized');
   if (!user.sessionId) throw new Error('Missing session');
 
@@ -140,7 +140,7 @@ export function acquirePageLock(pageId, user, ttlSeconds = 60 * 10) {
 
   const expired = lock.locked_until < nowIso;
   const owned = lock.locked_by === user.sessionId;
-  if (!expired && !owned) {
+  if (!expired && !owned && !force) {
     throw new Error(`Locked by ${lock.locked_by_name || 'another user'} until ${lock.locked_until}`);
   }
 

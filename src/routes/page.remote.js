@@ -44,6 +44,18 @@ export const acquirePageLockData = command(v.string(), async (pageId) => {
   }
 });
 
+export const takePageLockData = command(v.string(), async (pageId) => {
+  const event = getRequestEvent();
+  const user = event.locals.user;
+  if (!user) throw error(401, 'Unauthorized');
+  try {
+    acquirePageLock(pageId, user, undefined, true);
+    return { pageId, status: 'ok' };
+  } catch (err) {
+    throw error(500, err instanceof Error ? err.message : 'Error');
+  }
+});
+
 export const publishPageData = command(v.string(), async (pageId) => {
   const event = getRequestEvent();
   const user = event.locals.user;
