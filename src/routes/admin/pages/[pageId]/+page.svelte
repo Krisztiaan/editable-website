@@ -59,6 +59,21 @@
     <div><span class="font-semibold">staging</span>: {stagingVersionId || '—'}</div>
     <div><span class="font-semibold">preview</span>: {previewVersionId || '—'}</div>
   </div>
+  <div class="pt-3 flex flex-wrap items-center gap-2">
+    {#if previewVersionId && previewVersionId !== stagingVersionId}
+      <SecondaryButton
+        type="button"
+        disabled={busy}
+        onclick={() => setPointer('staging', previewVersionId)}
+        >Promote preview → staging</SecondaryButton
+      >
+    {/if}
+    {#if stagingVersionId && stagingVersionId !== prodVersionId}
+      <PrimaryButton type="button" disabled={busy} onclick={() => setPointer('prod', stagingVersionId)}
+        >Promote staging → prod</PrimaryButton
+      >
+    {/if}
+  </div>
 </div>
 
 <h2 class="text-xl font-bold pb-4">Versions</h2>
