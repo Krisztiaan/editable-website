@@ -16,8 +16,20 @@
   const prodVersionId = $derived(pointersByName.prod?.version_id);
   const stagingVersionId = $derived(pointersByName.staging?.version_id);
   const previewVersionId = $derived(pointersByName.preview?.version_id);
-  const draftPointers = $derived((data.pointers || []).filter((p) => p.pointer?.startsWith('draft:')));
-  const draftVersionIds = $derived(draftPointers.map((p) => p.version_id));
+
+  const currentDraftPointer = $derived(
+    data.currentUser?.userId
+      ? `draft:${data.currentUser.userId}`
+      : data.currentUser?.sessionId
+        ? `draft:${data.currentUser.sessionId}`
+        : null
+  );
+  const currentDraftVersionId = $derived(
+    currentDraftPointer ? pointersByName[currentDraftPointer]?.version_id : null
+  );
+  const otherDraftPointers = $derived(
+    (data.pointers || []).filter((p) => p.pointer?.startsWith('draft:') && p.pointer !== currentDraftPointer)
+  );
 
   const pagePath = $derived(
     data.pageId === 'home' ? '/' : data.pageId === 'imprint' ? '/imprint' : `/pages/${data.pageId}`
@@ -33,6 +45,7 @@
   });
 
   let busy = $state(false);
+  let showOtherDrafts = $state(false);
 
   async function takeLock() {
     busy = true;
@@ -88,13 +101,26 @@
     <div><span class="font-semibold">prod</span>: {prodVersionId || '—'}</div>
     <div><span class="font-semibold">staging</span>: {stagingVersionId || '—'}</div>
     <div><span class="font-semibold">preview</span>: {previewVersionId || '—'}</div>
-    {#if draftPointers.length}
-      <div class="pt-2 text-gray-500">draft</div>
-      {#each draftPointers as p (p.pointer)}
+    <div><span class="font-semibold">draft</span>: {currentDraftVersionId || '—'}</div>
+  </div>
+  {#if otherDraftPointers.length}
+    <div class="pt-2">
+      <SecondaryButton
+        size="sm"
+        type="button"
+        disabled={busy}
+        onclick={() => (showOtherDrafts = !showOtherDrafts)}
+        >{showOtherDrafts ? 'Hide other drafts' : `Show ${otherDraftPointers.length} other drafts`}</SecondaryButton
+      >
+    </div>
+  {/if}
+  {#if showOtherDrafts && otherDraftPointers.length}
+    <div class="text-sm pt-2">
+      {#each otherDraftPointers as p (p.pointer)}
         <div><span class="font-semibold">{p.pointer}</span>: {p.version_id}</div>
       {/each}
-    {/if}
-  </div>
+    </div>
+  {/if}
   {#if data.lock}
     <div class="flex flex-wrap items-center gap-2">
       <div class="text-xs text-gray-500">
@@ -146,7 +172,7 @@
           {#if v.version_id === previewVersionId}
             <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded">preview</span>
           {/if}
-          {#if draftVersionIds.includes(v.version_id)}
+          {#if currentDraftVersionId && v.version_id === currentDraftVersionId}
             <span class="text-xs font-bold bg-purple-100 text-purple-800 px-2 py-1 rounded">draft</span>
           {/if}
 
@@ -179,11 +205,20 @@
 
 <h2 class="text-xl font-bold pt-10 pb-4">History</h2>
 
+{#if data.draftEventsCount}
+  <div class="text-xs text-gray-500 pb-2">
+    Draft saves hidden: {data.draftEventsCount}
+    {#if data.draftEventsLatestAt}
+      <span> (last {data.draftEventsLatestAt})</span>
+    {/if}
+  </div>
+{/if}
+
 {#if (data.events || []).length === 0}
   <p class="text-gray-600">No pointer changes recorded yet.</p>
 {:else}
   <div class="space-y-3">
-  {#each data.events as e (e.event_id)}
+    {#each data.events as e (e.event_id)}
       <div class="border border-gray-100 rounded-lg p-3">
         <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
           <span class="font-semibold">{e.pointer}</span>
@@ -204,7 +239,7 @@
           {e.from_version_id || '—'} → {e.to_version_id}
         </div>
       </div>
-      {/each}
+    {/each}
   </div>
 {/if}
 

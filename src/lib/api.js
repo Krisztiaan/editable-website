@@ -617,6 +617,7 @@ export async function listPageVersions(page_id, currentUser) {
   );
 
   let events = [];
+  let draftEventMeta = { count: 0, latest: null };
   try {
     events = dbSpan('select', 'page_pointer_events', { 'app.page.id': page_id }, () =>
       db
@@ -624,11 +625,24 @@ export async function listPageVersions(page_id, currentUser) {
           `SELECT event_id, pointer, from_version_id, to_version_id, changed_at, changed_by
            FROM page_pointer_events
            WHERE page_id = ?
+             AND pointer NOT LIKE 'draft:%'
            ORDER BY changed_at DESC
            LIMIT 50`
         )
         .all(page_id)
     );
+
+    const meta = dbSpan('select', 'page_pointer_events', { 'app.page.id': page_id }, () =>
+      db
+        .prepare(
+          `SELECT COUNT(*) AS count, MAX(changed_at) AS latest
+           FROM page_pointer_events
+           WHERE page_id = ?
+             AND pointer LIKE 'draft:%'`
+        )
+        .get(page_id)
+    );
+    if (meta) draftEventMeta = meta;
   } catch {
     // ignore if table missing
   }
@@ -665,7 +679,16 @@ export async function listPageVersions(page_id, currentUser) {
     // ignore if table missing
   }
 
-  return { pageId: page_id, pointers, versions, events, lockEvents, lock };
+  return {
+    pageId: page_id,
+    pointers,
+    versions,
+    events,
+    draftEventsCount: draftEventMeta?.count || 0,
+    draftEventsLatestAt: draftEventMeta?.latest || null,
+    lockEvents,
+    lock
+  };
 }
 
 export async function setPagePointer(page_id, pointer, version_id, currentUser) {
