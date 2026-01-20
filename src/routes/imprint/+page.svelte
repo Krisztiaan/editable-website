@@ -17,6 +17,16 @@
   const user = getContext('user');
   const editing = getContext('editing');
 
+  const LOCK_HEARTBEAT_MS = 4 * 60 * 1000;
+
+  $effect(() => {
+    if (!editing().on) return;
+    const timer = setInterval(() => {
+      acquirePageLockData('imprint').catch((err) => console.error('[lock-heartbeat]', err));
+    }, LOCK_HEARTBEAT_MS);
+    return () => clearInterval(timer);
+  });
+
   // --------------------------------------------------------------------------
   // DEFAULT PAGE CONTENT - AJDUST TO YOUR NEEDS
   // --------------------------------------------------------------------------

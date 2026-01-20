@@ -1,8 +1,17 @@
 <script>
   import BuilderApp from '$lib/builder/BuilderApp.svelte';
-  import { getPageData, publishPageData, savePageData } from '../../page.remote';
+  import { acquirePageLockData, getPageData, publishPageData, savePageData } from '../../page.remote';
 
   let { data } = $props();
+
+  const LOCK_HEARTBEAT_MS = 4 * 60 * 1000;
+  $effect(() => {
+    const pageId = data.pageId;
+    const timer = setInterval(() => {
+      acquirePageLockData(pageId).catch((err) => console.error('[lock-heartbeat]', err));
+    }, LOCK_HEARTBEAT_MS);
+    return () => clearInterval(timer);
+  });
 
   async function onSave(payload) {
     try {
@@ -24,4 +33,3 @@
 </script>
 
 <BuilderApp initialPage={data.page} pageId={data.pageId} {onSave} {onPublish} />
-

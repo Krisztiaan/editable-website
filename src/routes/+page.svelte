@@ -112,6 +112,16 @@
   // Page logic
   // --------------------------------------------------------------------------
 
+  const LOCK_HEARTBEAT_MS = 4 * 60 * 1000;
+
+  $effect(() => {
+    if (!editing().on) return;
+    const timer = setInterval(() => {
+      acquirePageLockData('home').catch((err) => console.error('[lock-heartbeat]', err));
+    }, LOCK_HEARTBEAT_MS);
+    return () => clearInterval(timer);
+  });
+
   async function toggleEdit() {
     try {
       await acquirePageLockData('home');
