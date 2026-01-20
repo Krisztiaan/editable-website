@@ -59,6 +59,11 @@
     <div><span class="font-semibold">staging</span>: {stagingVersionId || '—'}</div>
     <div><span class="font-semibold">preview</span>: {previewVersionId || '—'}</div>
   </div>
+  {#if data.lock}
+    <div class="text-xs text-gray-500">
+      Lock: {data.lock.locked_by_name} until {data.lock.locked_until}
+    </div>
+  {/if}
   <div class="pt-3 flex flex-wrap items-center gap-2">
     {#if previewVersionId && previewVersionId !== stagingVersionId}
       <SecondaryButton

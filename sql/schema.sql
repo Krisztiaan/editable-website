@@ -41,6 +41,14 @@ CREATE TABLE IF NOT EXISTS page_pointer_events (
   changed_by TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS page_locks (
+  page_id TEXT PRIMARY KEY,
+  locked_by TEXT NOT NULL,
+  locked_by_name TEXT NOT NULL,
+  locked_until TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
 -- counters (for view counts and everything you want to track anonymously)
 CREATE TABLE IF NOT EXISTS counters (
   counter_id TEXT PRIMARY KEY,

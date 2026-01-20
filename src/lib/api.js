@@ -23,7 +23,8 @@ try {
     'articles',
     'page_versions',
     'page_pointers',
-    'page_pointer_events'
+    'page_pointer_events',
+    'page_locks'
   ];
   const hasTable = (name) =>
     db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get(name);
@@ -109,6 +110,49 @@ function recordPointerEvent({ pageId, pointer, fromVersionId, toVersionId, now, 
   } catch {
     // best-effort; don't block pointer changes on audit logging
   }
+}
+
+function acquirePageLock(pageId, user, ttlSeconds = 60 * 10) {
+  if (!user) throw new Error('Not authorized');
+  if (!user.sessionId) throw new Error('Missing session');
+
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const lockedUntil = new Date(now.getTime() + ttlSeconds * 1000).toISOString();
+
+  // Ensure the row exists.
+  dbSpan('insert', 'page_locks', { 'app.page.id': pageId }, () =>
+    db
+      .prepare(
+        `INSERT OR IGNORE INTO page_locks (page_id, locked_by, locked_by_name, locked_until, updated_at)
+         VALUES (?, ?, ?, ?, ?)`
+      )
+      .run(pageId, user.sessionId, user.name || 'Admin', lockedUntil, nowIso)
+  );
+
+  const lock = dbSpan('select', 'page_locks', { 'app.page.id': pageId }, () =>
+    db
+      .prepare('SELECT locked_by, locked_by_name, locked_until FROM page_locks WHERE page_id = ?')
+      .get(pageId)
+  );
+
+  if (!lock) throw new Error('Lock unavailable');
+
+  const expired = lock.locked_until < nowIso;
+  const owned = lock.locked_by === user.sessionId;
+  if (!expired && !owned) {
+    throw new Error(`Locked by ${lock.locked_by_name || 'another user'} until ${lock.locked_until}`);
+  }
+
+  dbSpan('update', 'page_locks', { 'app.page.id': pageId }, () =>
+    db
+      .prepare(
+        `UPDATE page_locks
+         SET locked_by = ?, locked_by_name = ?, locked_until = ?, updated_at = ?
+         WHERE page_id = ?`
+      )
+      .run(user.sessionId, user.name || 'Admin', lockedUntil, nowIso, pageId)
+  );
 }
 
 function dbSpan(op, table, attrs, fn) {
@@ -369,7 +413,7 @@ export async function getCurrentUser(session_id) {
   );
 
   if (session) {
-    return { name: 'Admin' };
+    return { name: 'Admin', sessionId: session.session_id };
   } else {
     return null;
   }
@@ -381,6 +425,8 @@ export async function getCurrentUser(session_id) {
  */
 export async function createOrUpdatePage(page_id, page, currentUser) {
   if (!currentUser) throw new Error('Not authorized');
+  acquirePageLock(page_id, currentUser);
+
   const versionId = nanoid();
   const now = new Date().toISOString();
   const data = JSON.stringify(page);
@@ -500,7 +546,22 @@ export async function listPageVersions(page_id, currentUser) {
     // ignore if table missing
   }
 
-  return { pageId: page_id, pointers, versions, events };
+  let lock = null;
+  try {
+    lock = dbSpan('select', 'page_locks', { 'app.page.id': page_id }, () =>
+      db
+        .prepare(
+          `SELECT locked_by, locked_by_name, locked_until, updated_at
+           FROM page_locks
+           WHERE page_id = ?`
+        )
+        .get(page_id)
+    );
+  } catch {
+    // ignore if table missing
+  }
+
+  return { pageId: page_id, pointers, versions, events, lock };
 }
 
 export async function setPagePointer(page_id, pointer, version_id, currentUser) {
@@ -554,6 +615,7 @@ export async function setPagePointer(page_id, pointer, version_id, currentUser) 
 
 export async function publishPage(page_id, currentUser) {
   if (!currentUser) throw new Error('Not authorized');
+  acquirePageLock(page_id, currentUser);
 
   const previewVersionId = dbSpan('select', 'page_pointers', { 'app.page.id': page_id }, () =>
     db
