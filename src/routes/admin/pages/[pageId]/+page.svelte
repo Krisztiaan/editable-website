@@ -16,6 +16,8 @@
   const prodVersionId = $derived(pointersByName.prod?.version_id);
   const stagingVersionId = $derived(pointersByName.staging?.version_id);
   const previewVersionId = $derived(pointersByName.preview?.version_id);
+  const draftPointers = $derived((data.pointers || []).filter((p) => p.pointer?.startsWith('draft:')));
+  const draftVersionIds = $derived(draftPointers.map((p) => p.version_id));
 
   const pagePath = $derived(
     data.pageId === 'home' ? '/' : data.pageId === 'imprint' ? '/imprint' : `/pages/${data.pageId}`
@@ -71,6 +73,12 @@
     <div><span class="font-semibold">prod</span>: {prodVersionId || '—'}</div>
     <div><span class="font-semibold">staging</span>: {stagingVersionId || '—'}</div>
     <div><span class="font-semibold">preview</span>: {previewVersionId || '—'}</div>
+    {#if draftPointers.length}
+      <div class="pt-2 text-gray-500">draft</div>
+      {#each draftPointers as p (p.pointer)}
+        <div><span class="font-semibold">{p.pointer}</span>: {p.version_id}</div>
+      {/each}
+    {/if}
   </div>
   {#if data.lock}
     <div class="flex flex-wrap items-center gap-2">
@@ -122,6 +130,9 @@
           {/if}
           {#if v.version_id === previewVersionId}
             <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded">preview</span>
+          {/if}
+          {#if draftVersionIds.includes(v.version_id)}
+            <span class="text-xs font-bold bg-purple-100 text-purple-800 px-2 py-1 rounded">draft</span>
           {/if}
 
           <div class="flex-1"></div>
