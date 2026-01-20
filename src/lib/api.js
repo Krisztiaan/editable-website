@@ -744,59 +744,6 @@ export async function promoteDraftToPreview(page_id, currentUser) {
   return await setPagePointer(page_id, 'preview', draftVersionId, currentUser);
 }
 
-export async function publishPage(page_id, currentUser) {
-  if (!currentUser) throw new Error('Not authorized');
-  acquirePageLock(page_id, currentUser);
-
-  const previewVersionId = dbSpan('select', 'page_pointers', { 'app.page.id': page_id }, () =>
-    db
-      .prepare('SELECT version_id FROM page_pointers WHERE page_id = ? AND pointer = ?')
-      .get(page_id, 'preview')
-  )?.version_id;
-
-  if (!previewVersionId) {
-    throw new Error('No preview version found to publish');
-  }
-
-  const now = new Date().toISOString();
-
-  const prevProdVersionId = dbSpan(
-    'select',
-    'page_pointers',
-    { 'app.page.id': page_id, 'app.page.pointer': 'prod' },
-    () =>
-      db
-        .prepare('SELECT version_id FROM page_pointers WHERE page_id = ? AND pointer = ?')
-        .get(page_id, 'prod')
-  )?.version_id;
-
-  dbSpan('upsert', 'page_pointers', { 'app.page.id': page_id, 'app.page.pointer': 'prod' }, () =>
-    db
-      .prepare(
-        `INSERT INTO page_pointers (page_id, pointer, version_id, updated_at, updated_by)
-         VALUES (?, ?, ?, ?, ?)
-         ON CONFLICT(page_id, pointer) DO UPDATE SET
-           version_id = excluded.version_id,
-           updated_at = excluded.updated_at,
-           updated_by = excluded.updated_by`
-      )
-      .run(page_id, 'prod', previewVersionId, now, currentUser.name || 'Admin')
-  );
-
-  if (prevProdVersionId !== previewVersionId) {
-    recordPointerEvent({
-      pageId: page_id,
-      pointer: 'prod',
-      fromVersionId: prevProdVersionId || null,
-      toVersionId: previewVersionId,
-      now,
-      user: currentUser
-    });
-  }
-
-  return { pageId: page_id, versionId: previewVersionId, pointer: 'prod' };
-}
-
 async function getPageByPointer(page_id, pointer) {
   // Prefer versioned pages
   const versionId = dbSpan('select', 'page_pointers', { 'app.page.id': page_id }, () =>

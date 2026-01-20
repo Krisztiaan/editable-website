@@ -5,7 +5,6 @@ import {
   getPage as apiGetPage,
   createOrUpdatePage,
   promoteDraftToPreview,
-  publishPage,
   listPageVersions,
   setPagePointer,
   acquirePageLock
@@ -55,13 +54,6 @@ export const takePageLockData = command(v.string(), async (pageId) => {
   } catch (err) {
     throw error(500, err instanceof Error ? err.message : 'Error');
   }
-});
-
-export const publishPageData = command(v.string(), async (pageId) => {
-  const event = getRequestEvent();
-  const user = event.locals.user;
-  if (!user) throw error(401, 'Unauthorized');
-  return await publishPage(pageId, user);
 });
 
 export const promoteDraftToPreviewData = command(v.string(), async (pageId) => {
