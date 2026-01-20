@@ -1,6 +1,11 @@
 <script>
   import BuilderApp from '$lib/builder/BuilderApp.svelte';
-  import { acquirePageLockData, getPageData, publishPageData, savePageData } from '../../page.remote';
+  import {
+    acquirePageLockData,
+    getPageData,
+    promoteDraftToPreviewData,
+    savePageData
+  } from '../../page.remote';
 
   let { data } = $props();
 
@@ -22,9 +27,9 @@
     }
   }
 
-  async function onPublish(pageId) {
+  async function onPromoteToPreview(pageId) {
     try {
-      await publishPageData(pageId);
+      await promoteDraftToPreviewData(pageId);
     } catch (err) {
       console.error(err);
       alert('There was an error. Please try again.');
@@ -32,4 +37,4 @@
   }
 </script>
 
-<BuilderApp initialPage={data.page} pageId={data.pageId} {onSave} {onPublish} />
+<BuilderApp initialPage={data.page} pageId={data.pageId} {onSave} {onPromoteToPreview} />

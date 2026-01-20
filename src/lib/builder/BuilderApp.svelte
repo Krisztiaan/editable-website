@@ -16,7 +16,7 @@
 	  } from './ops.js';
 	  import { serializeDocToSvelte } from './serialize.js';
 
-  let { initialPage, pageId, onSave, onPublish } = $props();
+	  let { initialPage, pageId, onSave, onPromoteToPreview } = $props();
 
   const editingContext = getContext('editing');
   const editingState = editingContext();
@@ -180,7 +180,7 @@
   });
 
 	  let saving = $state(false);
-	  let publishing = $state(false);
+	  let promoting = $state(false);
 	  let showLibrary = $state(false);
 	  let showProps = $state(true);
 	  let viewport = $state('full');
@@ -623,15 +623,15 @@
     }
   }
 
-  async function publish() {
-    publishing = true;
-    try {
-      await onPublish(pageId);
-    } finally {
-      publishing = false;
-    }
-  }
-</script>
+	  async function promoteToPreview() {
+	    promoting = true;
+	    try {
+	      await onPromoteToPreview(pageId);
+	    } finally {
+	      promoting = false;
+	    }
+	  }
+	</script>
 
 <div class="min-h-screen">
   <div class="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-gray-100">
@@ -661,18 +661,18 @@
 	            </button>
 	          {/each}
 	        </div>
-	        <SecondaryButton type="button" disabled={publishing || saving} onclick={() => (showLibrary = true)}
-	          >Components</SecondaryButton
-	        >
-	        <SecondaryButton type="button" disabled={publishing || saving} onclick={() => (showProps = !showProps)}
-	          >{showProps ? 'Hide properties' : 'Show properties'}</SecondaryButton
-	        >
-	        <SecondaryButton type="button" disabled={publishing || saving} onclick={publish}
-	          >Publish</SecondaryButton
-	        >
-	        <PrimaryButton type="button" disabled={saving || publishing} onclick={save}
-	          >{saving ? 'Saving…' : 'Save draft'}</PrimaryButton
-        >
+		        <SecondaryButton type="button" disabled={promoting || saving} onclick={() => (showLibrary = true)}
+		          >Components</SecondaryButton
+		        >
+		        <SecondaryButton type="button" disabled={promoting || saving} onclick={() => (showProps = !showProps)}
+		          >{showProps ? 'Hide properties' : 'Show properties'}</SecondaryButton
+		        >
+		        <SecondaryButton type="button" disabled={promoting || saving} onclick={promoteToPreview}
+		          >Promote to preview</SecondaryButton
+		        >
+		        <PrimaryButton type="button" disabled={saving || promoting} onclick={save}
+		          >{saving ? 'Saving…' : 'Save draft'}</PrimaryButton
+		        >
       </div>
     </div>
   </div>

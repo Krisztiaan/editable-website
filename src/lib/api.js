@@ -439,17 +439,19 @@ export async function createOrUpdatePage(page_id, page, currentUser) {
       .run(versionId, page_id, data, now, currentUser.name || 'Admin')
   );
 
-  const prevPreviewVersionId = dbSpan(
+  const draftPointer = `draft:${currentUser.sessionId}`;
+
+  const prevDraftVersionId = dbSpan(
     'select',
     'page_pointers',
-    { 'app.page.id': page_id, 'app.page.pointer': 'preview' },
+    { 'app.page.id': page_id, 'app.page.pointer': draftPointer },
     () =>
       db
         .prepare('SELECT version_id FROM page_pointers WHERE page_id = ? AND pointer = ?')
-        .get(page_id, 'preview')
+        .get(page_id, draftPointer)
   )?.version_id;
 
-  dbSpan('upsert', 'page_pointers', { 'app.page.id': page_id, 'app.page.pointer': 'preview' }, () =>
+  dbSpan('upsert', 'page_pointers', { 'app.page.id': page_id, 'app.page.pointer': draftPointer }, () =>
     db
       .prepare(
         `INSERT INTO page_pointers (page_id, pointer, version_id, updated_at, updated_by)
@@ -459,34 +461,54 @@ export async function createOrUpdatePage(page_id, page, currentUser) {
            updated_at = excluded.updated_at,
            updated_by = excluded.updated_by`
       )
-      .run(page_id, 'preview', versionId, now, currentUser.name || 'Admin')
+      .run(page_id, draftPointer, versionId, now, currentUser.name || 'Admin')
   );
 
-  if (prevPreviewVersionId !== versionId) {
+  if (prevDraftVersionId !== versionId) {
     recordPointerEvent({
       pageId: page_id,
-      pointer: 'preview',
-      fromVersionId: prevPreviewVersionId || null,
+      pointer: draftPointer,
+      fromVersionId: prevDraftVersionId || null,
       toVersionId: versionId,
       now,
       user: currentUser
     });
   }
 
-  return { pageId: page_id, versionId, pointer: 'preview' };
+  return { pageId: page_id, versionId, pointer: draftPointer };
 }
 
 /**
  * E.g. getPage("home") gets all dynamic data for the home page
  */
 export async function getPage(page_id, currentUser, pointerOverride = null) {
-  const pointer =
-    pointerOverride === 'prod' || pointerOverride === 'staging' || pointerOverride === 'preview'
-      ? pointerOverride
-      : currentUser
-        ? 'preview'
-        : 'prod';
-  return await getPageByPointer(page_id, pointer);
+  if (pointerOverride === 'prod' || pointerOverride === 'staging' || pointerOverride === 'preview') {
+    return await getPageByPointer(page_id, pointerOverride);
+  }
+
+  if (currentUser) {
+    const draftPointer = `draft:${currentUser.sessionId}`;
+    const versionId = dbSpan(
+      'select',
+      'page_pointers',
+      { 'app.page.id': page_id, 'app.page.pointer': draftPointer },
+      () =>
+        db
+          .prepare('SELECT version_id FROM page_pointers WHERE page_id = ? AND pointer = ?')
+          .get(page_id, draftPointer)
+    )?.version_id;
+
+    if (versionId) {
+      const row = dbSpan('select', 'page_versions', { 'app.page.id': page_id }, () =>
+        db.prepare('SELECT data FROM page_versions WHERE version_id = ?').get(versionId)
+      );
+      if (row?.data) return JSON.parse(row.data);
+    }
+
+    return await getPageByPointer(page_id, 'preview');
+  }
+
+  return await getPageByPointer(page_id, 'prod');
 }
 
 export async function listPageIds(currentUser) {
@@ -616,6 +638,24 @@ export async function setPagePointer(page_id, pointer, version_id, currentUser) 
   }
 
   return { pageId: page_id, versionId: version_id, pointer };
+}
+
+export async function promoteDraftToPreview(page_id, currentUser) {
+  if (!currentUser) throw new Error('Not authorized');
+  acquirePageLock(page_id, currentUser);
+
+  const draftPointer = `draft:${currentUser.sessionId}`;
+  const draftVersionId = dbSpan('select', 'page_pointers', { 'app.page.id': page_id }, () =>
+    db
+      .prepare('SELECT version_id FROM page_pointers WHERE page_id = ? AND pointer = ?')
+      .get(page_id, draftPointer)
+  )?.version_id;
+
+  if (!draftVersionId) {
+    throw new Error('No draft version found to promote');
+  }
+
+  return await setPagePointer(page_id, 'preview', draftVersionId, currentUser);
 }
 
 export async function publishPage(page_id, currentUser) {

@@ -1,11 +1,11 @@
-<script>
-  import PlainText from '$lib/components/PlainText.svelte';
-  import RichText from '$lib/components/RichText.svelte';
-  import { acquirePageLockData, getPageData, savePageData, publishPageData } from './page.remote';
-  import PrimaryButton from '$lib/components/PrimaryButton.svelte';
-  import SecondaryButton from '$lib/components/SecondaryButton.svelte';
-  import LoginMenu from '$lib/components/LoginMenu.svelte';
-  import ArticleTeaser from '$lib/components/ArticleTeaser.svelte';
+	<script>
+	  import PlainText from '$lib/components/PlainText.svelte';
+	  import RichText from '$lib/components/RichText.svelte';
+	  import { acquirePageLockData, getPageData, savePageData, promoteDraftToPreviewData } from './page.remote';
+	  import PrimaryButton from '$lib/components/PrimaryButton.svelte';
+	  import SecondaryButton from '$lib/components/SecondaryButton.svelte';
+	  import LoginMenu from '$lib/components/LoginMenu.svelte';
+	  import ArticleTeaser from '$lib/components/ArticleTeaser.svelte';
   import Testimonial from '$lib/components/Testimonial.svelte';
   import IntroStep from '$lib/components/IntroStep.svelte';
   import Footer from '$lib/components/Footer.svelte';
@@ -196,18 +196,18 @@
     }
   }
 
-  async function publishPage() {
-    try {
-      if (!user()) {
-        alert('Sorry, you are not authorized. Please log in at /login.');
-        return;
-      }
-      await publishPageData('home');
-      showUserMenu = false;
-    } catch (err) {
-      console.error(err);
-      alert('There was an error. Please try again.');
-    }
+	  async function promoteToPreview() {
+	    try {
+	      if (!user()) {
+	        alert('Sorry, you are not authorized. Please log in at /login.');
+	        return;
+	      }
+	      await promoteDraftToPreviewData('home');
+	      showUserMenu = false;
+	    } catch (err) {
+	      console.error(err);
+	      alert('There was an error. Please try again.');
+	    }
   }
 
   initOrReset();
@@ -220,13 +220,13 @@
   <link rel="canonical" href="https://editable.website" />
 </svelte:head>
 
-<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage}>
-  {#if user()}
-    <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
-    <SecondaryButton type="button" onclick={publishPage}>Publish</SecondaryButton>
-    <LoginMenu />
-  {/if}
-</WebsiteHeader>
+	<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage}>
+	  {#if user()}
+	    <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
+	    <SecondaryButton type="button" onclick={promoteToPreview}>Promote to preview</SecondaryButton>
+	    <LoginMenu />
+	  {/if}
+	</WebsiteHeader>
 
 <div>
   <div class="max-w-screen-md mx-auto px-6 pt-12 sm:pt-24">

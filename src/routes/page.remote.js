@@ -4,6 +4,7 @@ import { query, command, getRequestEvent } from '$app/server';
 import {
   getPage as apiGetPage,
   createOrUpdatePage,
+  promoteDraftToPreview,
   publishPage,
   listPageVersions,
   setPagePointer,
@@ -13,7 +14,7 @@ import { error } from '@sveltejs/kit';
 
 export const getPageData = query(v.string(), async (pageId) => {
   const event = getRequestEvent();
-  // For editor reads, default to preview when authenticated.
+  // For editor reads, default to draft when authenticated.
   // Env selection for view-mode is handled by server load functions.
   return await apiGetPage(pageId, event.locals.user);
 });
@@ -61,6 +62,13 @@ export const publishPageData = command(v.string(), async (pageId) => {
   const user = event.locals.user;
   if (!user) throw error(401, 'Unauthorized');
   return await publishPage(pageId, user);
+});
+
+export const promoteDraftToPreviewData = command(v.string(), async (pageId) => {
+  const event = getRequestEvent();
+  const user = event.locals.user;
+  if (!user) throw error(401, 'Unauthorized');
+  return await promoteDraftToPreview(pageId, user);
 });
 
 export const getPageVersionsData = query(v.string(), async (pageId) => {

@@ -1,13 +1,13 @@
-<script>
-  import Footer from '$lib/components/Footer.svelte';
-  import PlainText from '$lib/components/PlainText.svelte';
-  import RichText from '$lib/components/RichText.svelte';
-  import LoginMenu from '$lib/components/LoginMenu.svelte';
-  import PrimaryButton from '$lib/components/PrimaryButton.svelte';
-  import SecondaryButton from '$lib/components/SecondaryButton.svelte';
-  import { acquirePageLockData, getPageData, savePageData, publishPageData } from '../page.remote';
-  import { getContext } from 'svelte';
-  import WebsiteHeader from '$lib/components/WebsiteHeader.svelte';
+	<script>
+	  import Footer from '$lib/components/Footer.svelte';
+	  import PlainText from '$lib/components/PlainText.svelte';
+	  import RichText from '$lib/components/RichText.svelte';
+	  import LoginMenu from '$lib/components/LoginMenu.svelte';
+	  import PrimaryButton from '$lib/components/PrimaryButton.svelte';
+	  import SecondaryButton from '$lib/components/SecondaryButton.svelte';
+	  import { acquirePageLockData, getPageData, savePageData, promoteDraftToPreviewData } from '../page.remote';
+	  import { getContext } from 'svelte';
+	  import WebsiteHeader from '$lib/components/WebsiteHeader.svelte';
 
   let { data } = $props();
 
@@ -86,15 +86,15 @@
     }
   }
 
-  async function publishPage() {
-    if (!user()) return alert('Sorry, you are not authorized.');
-    try {
-      await publishPageData('imprint');
-      showUserMenu = false;
-    } catch (err) {
-      console.error(err);
-      alert('There was an error. Please try again.');
-    }
+	  async function promoteToPreview() {
+	    if (!user()) return alert('Sorry, you are not authorized.');
+	    try {
+	      await promoteDraftToPreviewData('imprint');
+	      showUserMenu = false;
+	    } catch (err) {
+	      console.error(err);
+	      alert('There was an error. Please try again.');
+	    }
   }
 </script>
 
@@ -102,13 +102,13 @@
   <title>Imprint</title>
 </svelte:head>
 
-<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage}>
-  {#if user()}
-    <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
-    <SecondaryButton type="button" onclick={publishPage}>Publish</SecondaryButton>
-    <LoginMenu />
-  {/if}
-</WebsiteHeader>
+	<WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage}>
+	  {#if user()}
+	    <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
+	    <SecondaryButton type="button" onclick={promoteToPreview}>Promote to preview</SecondaryButton>
+	    <LoginMenu />
+	  {/if}
+	</WebsiteHeader>
 
 <div class="py-12 sm:py-24">
   <div class="max-w-screen-md mx-auto px-6 md:text-xl">

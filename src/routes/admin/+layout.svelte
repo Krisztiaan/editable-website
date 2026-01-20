@@ -5,18 +5,19 @@
 </script>
 
 <Limiter>
-  <div class="py-8 flex items-center justify-between gap-6">
-    <div>
-      <div class="text-xl font-bold">Admin</div>
-      <div class="text-sm text-gray-500">Signed in as {data.currentUser?.name}</div>
-    </div>
-    <form method="POST" action={resolve('/admin/env')} class="hidden md:flex items-center gap-1">
-      {#each [
-        { id: 'prod', label: 'Prod' },
-        { id: 'staging', label: 'Staging' },
-        { id: 'preview', label: 'Preview' }
-      ] as env (env.id)}
-        <button
+	  <div class="py-8 flex items-center justify-between gap-6">
+	    <div>
+	      <div class="text-xl font-bold">Admin</div>
+	      <div class="text-sm text-gray-500">Signed in as {data.currentUser?.name}</div>
+	    </div>
+	    <form method="POST" action={resolve('/admin/env')} class="hidden md:flex items-center gap-1">
+	      {#each [
+	        { id: 'auto', label: 'Auto' },
+	        { id: 'prod', label: 'Prod' },
+	        { id: 'staging', label: 'Staging' },
+	        { id: 'preview', label: 'Preview' }
+	      ] as env (env.id)}
+	        <button
           type="submit"
           name="env"
           value={env.id}
