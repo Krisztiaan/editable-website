@@ -16,7 +16,9 @@
   const prodVersionId = $derived(pointersByName.prod?.version_id);
   const previewVersionId = $derived(pointersByName.preview?.version_id);
 
-  const pagePath = $derived(data.pageId === 'home' ? '/' : `/${data.pageId}`);
+  const pagePath = $derived(
+    data.pageId === 'home' ? '/' : data.pageId === 'imprint' ? '/imprint' : `/pages/${data.pageId}`
+  );
 
   let busy = $state(false);
 
@@ -41,6 +43,10 @@
   </div>
   <div class="text-sm">
     <a class="underline" href={resolve(pagePath)}>Open page</a>
+    {#if data.pageId !== 'home' && data.pageId !== 'imprint'}
+      <span class="text-gray-300 px-2">•</span>
+      <a class="underline" href={resolve('/builder/[pageId]', { pageId: data.pageId })}>Edit in builder</a>
+    {/if}
     <span class="text-gray-500"> (prod requires logged-out view)</span>
   </div>
 </div>

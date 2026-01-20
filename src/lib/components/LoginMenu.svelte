@@ -10,7 +10,7 @@
 <div>
   <div class="py-4 text-center">Signed in as {user().name}</div>
   <div class="flex flex-col space-y-2">
-    <SecondaryButton onclick={() => goto(resolve('/builder'))}>Builder</SecondaryButton>
+    <SecondaryButton onclick={() => goto(resolve('/builder/[pageId]', { pageId: 'builder' }))}>Builder</SecondaryButton>
     <SecondaryButton onclick={() => goto(resolve('/admin/pages'))}>Admin</SecondaryButton>
     <PrimaryButton onclick={() => goto(resolve('/logout'))}>Sign out</PrimaryButton>
   </div>
