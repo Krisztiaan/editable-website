@@ -9,7 +9,13 @@ export const actions = {
     const sessionTimeout = 60 * 24 * 7; // one week in minutes
     try {
       const { sessionId } = await authenticate(password, sessionTimeout);
-      cookies.set('sessionid', sessionId, { path: '/' });
+      cookies.set('sessionid', sessionId, {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: event.url.protocol === 'https:',
+        maxAge: sessionTimeout * 60
+      });
       try {
         event.tracing?.current?.setAttribute('app.auth.success', true);
       } catch { /* ignore tracing */ }
@@ -20,6 +26,6 @@ export const actions = {
       } catch { /* ignore tracing */ }
       return fail(400, { incorrect: true });
     }
-    redirect(303, '/');
+    throw redirect(303, '/');
   }
 };
