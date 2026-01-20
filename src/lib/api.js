@@ -747,7 +747,11 @@ export async function promoteDraftToPreview(page_id, currentUser) {
 
 async function getPageByPointer(page_id, pointer) {
   // Prefer versioned pages
-  const versionId = dbSpan('select', 'page_pointers', { 'app.page.id': page_id }, () =>
+  const versionId = dbSpan(
+    'select',
+    'page_pointers',
+    { 'app.page.id': page_id, 'app.page.pointer': pointer },
+    () =>
     db
       .prepare('SELECT version_id FROM page_pointers WHERE page_id = ? AND pointer = ?')
       .get(page_id, pointer)
