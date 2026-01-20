@@ -6,7 +6,7 @@ import { error } from '@sveltejs/kit';
 
 export const getPageData = query(v.string(), async (pageId) => {
   const event = getRequestEvent();
-  return await apiGetPage(pageId, event.locals.user);
+  return await apiGetPage(pageId, event.locals.user, event.locals.envPointer);
 });
 
 export const savePageData = command(

@@ -12,6 +12,10 @@ export async function handle({ event, resolve }) {
     event.tracing?.root?.setAttribute('user.authenticated', Boolean(event.locals.user));
   } catch { /* ignore tracing */ }
 
+  const envPointer = event.cookies.get('env');
+  event.locals.envPointer =
+    envPointer === 'prod' || envPointer === 'staging' || envPointer === 'preview' ? envPointer : null;
+
   const response = await resolve(event);
   try {
     event.tracing?.root?.setAttribute('http.status_code', response.status);

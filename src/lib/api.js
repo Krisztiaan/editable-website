@@ -374,8 +374,8 @@ export async function createOrUpdatePage(page_id, page, currentUser) {
 /**
  * E.g. getPage("home") gets all dynamic data for the home page
  */
-export async function getPage(page_id, currentUser) {
-  const pointer = currentUser ? 'preview' : 'prod';
+export async function getPage(page_id, currentUser, pointerOverride = null) {
+  const pointer = currentUser ? pointerOverride || 'preview' : 'prod';
   return await getPageByPointer(page_id, pointer);
 }
 
@@ -501,7 +501,7 @@ async function getPageByPointer(page_id, pointer) {
   }
 
   // Fallback: if preview missing, try prod
-  if (pointer === 'preview') {
+  if (pointer === 'preview' || pointer === 'staging') {
     return await getPageByPointer(page_id, 'prod');
   }
 
