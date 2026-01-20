@@ -53,14 +53,19 @@ try {
     for (const row of legacyPages) {
       const prod = getPointer.get(row.page_id, 'prod')?.version_id;
       const preview = getPointer.get(row.page_id, 'preview')?.version_id;
+      const staging = getPointer.get(row.page_id, 'staging')?.version_id;
 
       if (!prod) {
         const versionId = nanoid();
         insertVersion.run(versionId, row.page_id, row.data, now, 'system');
         upsertPointer.run(row.page_id, 'prod', versionId, now, 'system');
         upsertPointer.run(row.page_id, 'preview', versionId, now, 'system');
+        upsertPointer.run(row.page_id, 'staging', versionId, now, 'system');
       } else if (!preview) {
         upsertPointer.run(row.page_id, 'preview', prod, now, 'system');
+      }
+      if (prod && !staging) {
+        upsertPointer.run(row.page_id, 'staging', prod, now, 'system');
       }
     }
   }
@@ -424,7 +429,7 @@ export async function listPageVersions(page_id, currentUser) {
 
 export async function setPagePointer(page_id, pointer, version_id, currentUser) {
   if (!currentUser) throw new Error('Not authorized');
-  if (pointer !== 'preview' && pointer !== 'prod') throw new Error('Invalid pointer');
+  if (pointer !== 'preview' && pointer !== 'staging' && pointer !== 'prod') throw new Error('Invalid pointer');
 
   const version = dbSpan('select', 'page_versions', { 'app.page.id': page_id }, () =>
     db

@@ -14,6 +14,7 @@
   });
 
   const prodVersionId = $derived(pointersByName.prod?.version_id);
+  const stagingVersionId = $derived(pointersByName.staging?.version_id);
   const previewVersionId = $derived(pointersByName.preview?.version_id);
 
   const pagePath = $derived(
@@ -55,6 +56,7 @@
   <div class="text-sm text-gray-500">Pointers</div>
   <div class="text-sm">
     <div><span class="font-semibold">prod</span>: {prodVersionId || '—'}</div>
+    <div><span class="font-semibold">staging</span>: {stagingVersionId || '—'}</div>
     <div><span class="font-semibold">preview</span>: {previewVersionId || '—'}</div>
   </div>
 </div>
@@ -75,6 +77,11 @@
           {#if v.version_id === prodVersionId}
             <span class="text-xs font-bold bg-green-100 text-green-800 px-2 py-1 rounded">prod</span>
           {/if}
+          {#if v.version_id === stagingVersionId}
+            <span class="text-xs font-bold bg-yellow-100 text-yellow-800 px-2 py-1 rounded"
+              >staging</span
+            >
+          {/if}
           {#if v.version_id === previewVersionId}
             <span class="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded">preview</span>
           {/if}
@@ -86,6 +93,12 @@
             disabled={busy || v.version_id === previewVersionId}
             onclick={() => setPointer('preview', v.version_id)}
             >Set preview</SecondaryButton
+          >
+          <SecondaryButton
+            type="button"
+            disabled={busy || v.version_id === stagingVersionId}
+            onclick={() => setPointer('staging', v.version_id)}
+            >Set staging</SecondaryButton
           >
           <div class="w-2"></div>
           <PrimaryButton
