@@ -112,7 +112,7 @@ function recordPointerEvent({ pageId, pointer, fromVersionId, toVersionId, now, 
   }
 }
 
-function acquirePageLock(pageId, user, ttlSeconds = 60 * 10) {
+export function acquirePageLock(pageId, user, ttlSeconds = 60 * 10) {
   if (!user) throw new Error('Not authorized');
   if (!user.sessionId) throw new Error('Missing session');
 
