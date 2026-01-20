@@ -480,7 +480,12 @@ export async function createOrUpdatePage(page_id, page, currentUser) {
  * E.g. getPage("home") gets all dynamic data for the home page
  */
 export async function getPage(page_id, currentUser, pointerOverride = null) {
-  const pointer = currentUser ? pointerOverride || 'preview' : 'prod';
+  const pointer =
+    pointerOverride === 'prod' || pointerOverride === 'staging' || pointerOverride === 'preview'
+      ? pointerOverride
+      : currentUser
+        ? 'preview'
+        : 'prod';
   return await getPageByPointer(page_id, pointer);
 }
 
