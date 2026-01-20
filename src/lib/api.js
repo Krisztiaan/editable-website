@@ -413,7 +413,7 @@ export async function getCurrentUser(session_id) {
   );
 
   if (session) {
-    return { name: 'Admin', sessionId: session.session_id };
+    return { userId: 'admin', name: 'Admin', sessionId: session.session_id };
   } else {
     return null;
   }
@@ -439,7 +439,7 @@ export async function createOrUpdatePage(page_id, page, currentUser) {
       .run(versionId, page_id, data, now, currentUser.name || 'Admin')
   );
 
-  const draftPointer = `draft:${currentUser.sessionId}`;
+  const draftPointer = `draft:${currentUser.userId || currentUser.sessionId}`;
 
   const prevDraftVersionId = dbSpan(
     'select',
@@ -487,8 +487,10 @@ export async function getPage(page_id, currentUser, pointerOverride = null) {
   }
 
   if (currentUser) {
-    const draftPointer = `draft:${currentUser.sessionId}`;
-    const versionId = dbSpan(
+    const draftPointer = `draft:${currentUser.userId || currentUser.sessionId}`;
+    const legacyDraftPointer = `draft:${currentUser.sessionId}`;
+
+    let versionId = dbSpan(
       'select',
       'page_pointers',
       { 'app.page.id': page_id, 'app.page.pointer': draftPointer },
@@ -497,6 +499,18 @@ export async function getPage(page_id, currentUser, pointerOverride = null) {
           .prepare('SELECT version_id FROM page_pointers WHERE page_id = ? AND pointer = ?')
           .get(page_id, draftPointer)
     )?.version_id;
+
+    if (!versionId && legacyDraftPointer !== draftPointer) {
+      versionId = dbSpan(
+        'select',
+        'page_pointers',
+        { 'app.page.id': page_id, 'app.page.pointer': legacyDraftPointer },
+        () =>
+          db
+            .prepare('SELECT version_id FROM page_pointers WHERE page_id = ? AND pointer = ?')
+            .get(page_id, legacyDraftPointer)
+      )?.version_id;
+    }
 
     if (versionId) {
       const row = dbSpan('select', 'page_versions', { 'app.page.id': page_id }, () =>
@@ -644,12 +658,22 @@ export async function promoteDraftToPreview(page_id, currentUser) {
   if (!currentUser) throw new Error('Not authorized');
   acquirePageLock(page_id, currentUser);
 
-  const draftPointer = `draft:${currentUser.sessionId}`;
-  const draftVersionId = dbSpan('select', 'page_pointers', { 'app.page.id': page_id }, () =>
+  const draftPointer = `draft:${currentUser.userId || currentUser.sessionId}`;
+  const legacyDraftPointer = `draft:${currentUser.sessionId}`;
+
+  let draftVersionId = dbSpan('select', 'page_pointers', { 'app.page.id': page_id }, () =>
     db
       .prepare('SELECT version_id FROM page_pointers WHERE page_id = ? AND pointer = ?')
       .get(page_id, draftPointer)
   )?.version_id;
+
+  if (!draftVersionId && legacyDraftPointer !== draftPointer) {
+    draftVersionId = dbSpan('select', 'page_pointers', { 'app.page.id': page_id }, () =>
+      db
+        .prepare('SELECT version_id FROM page_pointers WHERE page_id = ? AND pointer = ?')
+        .get(page_id, legacyDraftPointer)
+    )?.version_id;
+  }
 
   if (!draftVersionId) {
     throw new Error('No draft version found to promote');
