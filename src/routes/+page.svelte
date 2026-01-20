@@ -1,7 +1,7 @@
 <script>
   import PlainText from '$lib/components/PlainText.svelte';
   import RichText from '$lib/components/RichText.svelte';
-  import { getPageData, savePageData } from './page.remote';
+  import { getPageData, savePageData, publishPageData } from './page.remote';
   import PrimaryButton from '$lib/components/PrimaryButton.svelte';
   import SecondaryButton from '$lib/components/SecondaryButton.svelte';
   import LoginMenu from '$lib/components/LoginMenu.svelte';
@@ -123,12 +123,10 @@
       image: '/images/person-placeholder.jpg',
       name: 'Firstname Lastname · example.com'
     });
-    testimonials = testimonials; // trigger update
   }
 
   function deleteTestimonial(index) {
     testimonials.splice(index, 1);
-    testimonials = testimonials; // trigger update
   }
 
   function moveTestimonial(index, direction) {
@@ -144,7 +142,6 @@
     const element = testimonials.splice(index, 1)[0];
     // Insert at new position
     testimonials.splice(toIndex, 0, element);
-    testimonials = testimonials; // trigger update
   }
 
   async function savePage() {
@@ -183,6 +180,20 @@
     }
   }
 
+  async function publishPage() {
+    try {
+      if (!user()) {
+        alert('Sorry, you are not authorized. Please log in at /login.');
+        return;
+      }
+      await publishPageData('home');
+      showUserMenu = false;
+    } catch (err) {
+      console.error(err);
+      alert('There was an error. Please try again.');
+    }
+  }
+
   initOrReset();
 </script>
 
@@ -196,6 +207,7 @@
 <WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage}>
   {#if user()}
     <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
+    <SecondaryButton type="button" onclick={publishPage}>Publish</SecondaryButton>
     <LoginMenu />
   {/if}
 </WebsiteHeader>

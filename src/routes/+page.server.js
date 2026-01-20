@@ -3,7 +3,7 @@ import { getArticles, getPage } from '$lib/api';
 export async function load({ locals }) {
   const currentUser = locals.user;
   const articles = await getArticles();
-  const page = await getPage('home');
+  const page = await getPage('home', currentUser);
 
   return {
     currentUser,

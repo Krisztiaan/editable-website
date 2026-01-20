@@ -13,6 +13,24 @@ CREATE TABLE IF NOT EXISTS pages (
   updated_at TEXT NOT NULL
 );
 
+-- versioned pages (draft/prod pointers)
+CREATE TABLE IF NOT EXISTS page_versions (
+  version_id TEXT PRIMARY KEY,
+  page_id TEXT NOT NULL,
+  data TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  created_by TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS page_pointers (
+  page_id TEXT NOT NULL,
+  pointer TEXT NOT NULL,
+  version_id TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  updated_by TEXT NOT NULL,
+  PRIMARY KEY (page_id, pointer)
+);
+
 -- counters (for view counts and everything you want to track anonymously)
 CREATE TABLE IF NOT EXISTS counters (
   counter_id TEXT PRIMARY KEY,

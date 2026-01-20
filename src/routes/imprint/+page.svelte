@@ -4,7 +4,8 @@
   import RichText from '$lib/components/RichText.svelte';
   import LoginMenu from '$lib/components/LoginMenu.svelte';
   import PrimaryButton from '$lib/components/PrimaryButton.svelte';
-  import { getPageData, savePageData } from '../page.remote';
+  import SecondaryButton from '$lib/components/SecondaryButton.svelte';
+  import { getPageData, savePageData, publishPageData } from '../page.remote';
   import { getContext } from 'svelte';
   import WebsiteHeader from '$lib/components/WebsiteHeader.svelte';
 
@@ -68,6 +69,17 @@
       alert('There was an error. Please try again.');
     }
   }
+
+  async function publishPage() {
+    if (!user()) return alert('Sorry, you are not authorized.');
+    try {
+      await publishPageData('imprint');
+      showUserMenu = false;
+    } catch (err) {
+      console.error(err);
+      alert('There was an error. Please try again.');
+    }
+  }
 </script>
 
 <svelte:head>
@@ -77,6 +89,7 @@
 <WebsiteHeader bind:showUserMenu cancel={initOrReset} save={savePage}>
   {#if user()}
     <PrimaryButton onclick={toggleEdit}>Edit page</PrimaryButton>
+    <SecondaryButton type="button" onclick={publishPage}>Publish</SecondaryButton>
     <LoginMenu />
   {/if}
 </WebsiteHeader>

@@ -28,7 +28,7 @@ export const createPost = command(
   async ({ title, content, teaser }) => {
     const event = getRequestEvent();
     const user = event.locals.user;
-    if (!user) error(401, 'Unauthorized');
+    if (!user) throw error(401, 'Unauthorized');
     const row = await apiCreateArticle(title, content, teaser, user);
     return { slug: row.slug };
   }
@@ -44,7 +44,7 @@ export const updatePost = command(
   async ({ slug, title, content, teaser }) => {
     const event = getRequestEvent();
     const user = event.locals.user;
-    if (!user) error(401, 'Unauthorized');
+    if (!user) throw error(401, 'Unauthorized');
     await apiUpdateArticle(slug, title, content, teaser, user);
   }
 );
@@ -52,7 +52,6 @@ export const updatePost = command(
 export const deletePost = command(v.string(), async (slug) => {
   const event = getRequestEvent();
   const user = event.locals.user;
-  if (!user) error(401, 'Unauthorized');
+  if (!user) throw error(401, 'Unauthorized');
   await apiDeleteArticle(slug, user);
 });
-

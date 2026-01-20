@@ -17,14 +17,52 @@ db.pragma('case_sensitive_like = true');
 
 // Ensure schema is present (idempotent)
 try {
-  const hasSessions = db
-    .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='sessions'")
-    .get();
-  if (!hasSessions) {
+  const requiredTables = ['sessions', 'pages', 'articles', 'page_versions', 'page_pointers'];
+  const hasTable = (name) =>
+    db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get(name);
+
+  const needsInit = requiredTables.some((t) => !hasTable(t));
+  if (needsInit) {
     const thisDir = dirname(fileURLToPath(import.meta.url));
     const schemaPath = new URL('../../sql/schema.sql', `file://${thisDir}/`);
     const sql = readFileSync(schemaPath, 'utf-8');
     db.exec(sql);
+  }
+
+  // Best-effort migration: seed versioned pages from legacy `pages` table
+  // so authenticated users can read the `preview` pointer immediately.
+  if (hasTable('page_versions') && hasTable('page_pointers') && hasTable('pages')) {
+    const legacyPages = db.prepare('SELECT page_id, data FROM pages').all();
+    const now = new Date().toISOString();
+
+    const getPointer = db.prepare(
+      'SELECT version_id FROM page_pointers WHERE page_id = ? AND pointer = ?'
+    );
+    const insertVersion = db.prepare(
+      'INSERT INTO page_versions (version_id, page_id, data, created_at, created_by) VALUES (?, ?, ?, ?, ?)'
+    );
+    const upsertPointer = db.prepare(
+      `INSERT INTO page_pointers (page_id, pointer, version_id, updated_at, updated_by)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(page_id, pointer) DO UPDATE SET
+         version_id = excluded.version_id,
+         updated_at = excluded.updated_at,
+         updated_by = excluded.updated_by`
+    );
+
+    for (const row of legacyPages) {
+      const prod = getPointer.get(row.page_id, 'prod')?.version_id;
+      const preview = getPointer.get(row.page_id, 'preview')?.version_id;
+
+      if (!prod) {
+        const versionId = nanoid();
+        insertVersion.run(versionId, row.page_id, row.data, now, 'system');
+        upsertPointer.run(row.page_id, 'prod', versionId, now, 'system');
+        upsertPointer.run(row.page_id, 'preview', versionId, now, 'system');
+      } else if (!preview) {
+        upsertPointer.run(row.page_id, 'preview', prod, now, 'system');
+      }
+    }
   }
 } catch {
   // Best-effort initialization; surface error to caller if operations fail later
@@ -300,36 +338,174 @@ export async function getCurrentUser(session_id) {
  */
 export async function createOrUpdatePage(page_id, page, currentUser) {
   if (!currentUser) throw new Error('Not authorized');
-  const pageExists = dbSpan('select', 'pages', { 'app.page.id': page_id }, () =>
-    db.prepare('SELECT page_id FROM pages WHERE page_id = ?').get(page_id)
+  const versionId = nanoid();
+  const now = new Date().toISOString();
+  const data = JSON.stringify(page);
+
+  dbSpan('insert', 'page_versions', { 'app.page.id': page_id, 'app.page.version': versionId }, () =>
+    db
+      .prepare(
+        'INSERT INTO page_versions (version_id, page_id, data, created_at, created_by) VALUES (?, ?, ?, ?, ?)'
+      )
+      .run(versionId, page_id, data, now, currentUser.name || 'Admin')
   );
-  if (pageExists) {
-    return dbSpan('update', 'pages', { 'app.page.id': page_id }, () =>
-      db
-        .prepare('UPDATE pages SET data = ?, updated_at = ? WHERE page_id = ? RETURNING page_id')
-        .get(JSON.stringify(page), new Date().toISOString(), page_id)
-    );
-  } else {
-    return dbSpan('insert', 'pages', { 'app.page.id': page_id }, () =>
-      db
-        .prepare('INSERT INTO pages (page_id, data, updated_at) values(?, ?, ?) RETURNING page_id')
-        .get(page_id, JSON.stringify(page), new Date().toISOString())
-    );
-  }
+
+  dbSpan('upsert', 'page_pointers', { 'app.page.id': page_id, 'app.page.pointer': 'preview' }, () =>
+    db
+      .prepare(
+        `INSERT INTO page_pointers (page_id, pointer, version_id, updated_at, updated_by)
+         VALUES (?, ?, ?, ?, ?)
+         ON CONFLICT(page_id, pointer) DO UPDATE SET
+           version_id = excluded.version_id,
+           updated_at = excluded.updated_at,
+           updated_by = excluded.updated_by`
+      )
+      .run(page_id, 'preview', versionId, now, currentUser.name || 'Admin')
+  );
+
+  return { pageId: page_id, versionId, pointer: 'preview' };
 }
 
 /**
  * E.g. getPage("home") gets all dynamic data for the home page
  */
-export async function getPage(page_id) {
-  const page = dbSpan('select', 'pages', { 'app.page.id': page_id }, () =>
+export async function getPage(page_id, currentUser) {
+  const pointer = currentUser ? 'preview' : 'prod';
+  return await getPageByPointer(page_id, pointer);
+}
+
+export async function listPageIds(currentUser) {
+  if (!currentUser) throw new Error('Not authorized');
+
+  const ids = new Set();
+
+  // Prefer versioned pages
+  try {
+    const rows = dbSpan('select', 'page_versions', {}, () =>
+      db.prepare('SELECT DISTINCT page_id FROM page_versions').all()
+    );
+    for (const r of rows) ids.add(r.page_id);
+  } catch {
+    // ignore if table missing
+  }
+
+  // Legacy fallback
+  try {
+    const rows = dbSpan('select', 'pages', {}, () => db.prepare('SELECT page_id FROM pages').all());
+    for (const r of rows) ids.add(r.page_id);
+  } catch {
+    // ignore if table missing
+  }
+
+  return Array.from(ids).sort();
+}
+
+export async function listPageVersions(page_id, currentUser) {
+  if (!currentUser) throw new Error('Not authorized');
+
+  const pointers = dbSpan('select', 'page_pointers', { 'app.page.id': page_id }, () =>
+    db
+      .prepare(
+        'SELECT pointer, version_id, updated_at, updated_by FROM page_pointers WHERE page_id = ?'
+      )
+      .all(page_id)
+  );
+
+  const versions = dbSpan('select', 'page_versions', { 'app.page.id': page_id }, () =>
+    db
+      .prepare(
+        'SELECT version_id, created_at, created_by FROM page_versions WHERE page_id = ? ORDER BY created_at DESC'
+      )
+      .all(page_id)
+  );
+
+  return { pageId: page_id, pointers, versions };
+}
+
+export async function setPagePointer(page_id, pointer, version_id, currentUser) {
+  if (!currentUser) throw new Error('Not authorized');
+  if (pointer !== 'preview' && pointer !== 'prod') throw new Error('Invalid pointer');
+
+  const version = dbSpan('select', 'page_versions', { 'app.page.id': page_id }, () =>
+    db
+      .prepare('SELECT version_id FROM page_versions WHERE page_id = ? AND version_id = ?')
+      .get(page_id, version_id)
+  );
+  if (!version) throw new Error('Version not found');
+
+  const now = new Date().toISOString();
+  dbSpan('upsert', 'page_pointers', { 'app.page.id': page_id, 'app.page.pointer': pointer }, () =>
+    db
+      .prepare(
+        `INSERT INTO page_pointers (page_id, pointer, version_id, updated_at, updated_by)
+         VALUES (?, ?, ?, ?, ?)
+         ON CONFLICT(page_id, pointer) DO UPDATE SET
+           version_id = excluded.version_id,
+           updated_at = excluded.updated_at,
+           updated_by = excluded.updated_by`
+      )
+      .run(page_id, pointer, version_id, now, currentUser.name || 'Admin')
+  );
+
+  return { pageId: page_id, versionId: version_id, pointer };
+}
+
+export async function publishPage(page_id, currentUser) {
+  if (!currentUser) throw new Error('Not authorized');
+
+  const previewVersionId = dbSpan('select', 'page_pointers', { 'app.page.id': page_id }, () =>
+    db
+      .prepare('SELECT version_id FROM page_pointers WHERE page_id = ? AND pointer = ?')
+      .get(page_id, 'preview')
+  )?.version_id;
+
+  if (!previewVersionId) {
+    throw new Error('No preview version found to publish');
+  }
+
+  const now = new Date().toISOString();
+  dbSpan('upsert', 'page_pointers', { 'app.page.id': page_id, 'app.page.pointer': 'prod' }, () =>
+    db
+      .prepare(
+        `INSERT INTO page_pointers (page_id, pointer, version_id, updated_at, updated_by)
+         VALUES (?, ?, ?, ?, ?)
+         ON CONFLICT(page_id, pointer) DO UPDATE SET
+           version_id = excluded.version_id,
+           updated_at = excluded.updated_at,
+           updated_by = excluded.updated_by`
+      )
+      .run(page_id, 'prod', previewVersionId, now, currentUser.name || 'Admin')
+  );
+
+  return { pageId: page_id, versionId: previewVersionId, pointer: 'prod' };
+}
+
+async function getPageByPointer(page_id, pointer) {
+  // Prefer versioned pages
+  const versionId = dbSpan('select', 'page_pointers', { 'app.page.id': page_id }, () =>
+    db
+      .prepare('SELECT version_id FROM page_pointers WHERE page_id = ? AND pointer = ?')
+      .get(page_id, pointer)
+  )?.version_id;
+
+  if (versionId) {
+    const row = dbSpan('select', 'page_versions', { 'app.page.id': page_id }, () =>
+      db.prepare('SELECT data FROM page_versions WHERE version_id = ?').get(versionId)
+    );
+    if (row?.data) return JSON.parse(row.data);
+  }
+
+  // Fallback: if preview missing, try prod
+  if (pointer === 'preview') {
+    return await getPageByPointer(page_id, 'prod');
+  }
+
+  // Legacy fallback: pre-versioned `pages` table
+  const legacy = dbSpan('select', 'pages', { 'app.page.id': page_id }, () =>
     db.prepare('SELECT data FROM pages WHERE page_id = ?').get(page_id)
   );
-  if (page?.data) {
-    return JSON.parse(page.data);
-  } else {
-    return null;
-  }
+  if (legacy?.data) return JSON.parse(legacy.data);
+  return null;
 }
 
 /**
